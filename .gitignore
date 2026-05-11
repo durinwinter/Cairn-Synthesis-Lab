@@ -1,0 +1,21 @@
+# Rust / Cargo
+backend/target/
+**/target/
+Cargo.lock
+
+# Frontend / JS
+node_modules/
+dist/
+build/
+.npm/
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local

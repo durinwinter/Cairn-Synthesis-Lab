@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "cairn-api",
+    "cairn-models"
+]
+resolver = "2"
