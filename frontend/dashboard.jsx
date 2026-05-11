@@ -29,7 +29,7 @@ function Dashboard({ batch, pred, onModule, onBench, onClone, onIpVault }) {
           <TernaryPlot batches={CSL.getState().batches} activeId={batch.id} />
         </Card>
         <Card title="Cost / m³ · Waterfall"
-          right={<span className="dim mono" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>USD · ALL PHASES</span>}>
+          right={<span className="dim mono" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>$ / m³ · ALL PHASES</span>}>
           <Waterfall
             items={[
               { label: 'Flint (S)', value: pred.cost.flint_s, color: 'var(--flint)' },
@@ -356,47 +356,211 @@ function BenchFeed({ logs }) {
   );
 }
 
+// ── Cairn Loop workflow card ──────────────────────────────────
+const LOOP_STAGES = [
+  {
+    key: 'design',
+    label: 'Design',
+    desc: 'Set formulation parameters in the Formulation sandbox. Check predicted performance.',
+    action: 'Open Formulation',
+    actionModule: 'formulation',
+    forStatus: ['research'],
+  },
+  {
+    key: 'verify',
+    label: 'Verify',
+    desc: 'Check the Kinetic module (working window OK?) and Interface module (wicking risk acceptable?).',
+    action: 'Open Kinetic',
+    actionModule: 'kinetic',
+    forStatus: ['research'],
+  },
+  {
+    key: 'make',
+    label: 'Make',
+    desc: 'Open the Batch Wizard. Select this batch — it is the active formulation. Make the physical pour.',
+    action: 'Open Batch Wizard',
+    actionHref: 'wizard.html',
+    forStatus: ['research', 'bench'],
+  },
+  {
+    key: 'measure',
+    label: 'Measure',
+    desc: 'Log the real-world results. Break loads, peak exotherm, failure mode. Use Bench Entry.',
+    action: 'Add Bench Entry',
+    actionBench: true,
+    forStatus: ['bench'],
+  },
+  {
+    key: 'improve',
+    label: 'Improve',
+    desc: 'Compare predicted vs actual. Clone this batch, adjust sliders, repeat the loop.',
+    action: 'Clone & Adjust',
+    actionClone: true,
+    forStatus: ['bench', 'locked'],
+  },
+];
+
+function CairnLoopCard({ batch, pred, onModule, onBench, onClone }) {
+  const status = batch.status;
+  const hasBreaks = (batch.benchLogs || []).some((l) => l.kind === 'break');
+  const hasCast   = (batch.benchLogs || []).some((l) => l.kind === 'cast');
+
+  // Derive where in the loop this batch actually is
+  let currentKey = 'design';
+  if (status === 'research' && hasCast)  currentKey = 'make';
+  else if (status === 'research')        currentKey = 'design';
+  else if (status === 'bench' && !hasBreaks) currentKey = 'measure';
+  else if (status === 'bench' && hasBreaks)  currentKey = 'improve';
+  else if (status === 'locked')          currentKey = 'improve';
+  else if (status === 'failed')          currentKey = 'improve';
+
+  const nextStage = LOOP_STAGES.find((s) => s.key === currentKey) || LOOP_STAGES[0];
+
+  const advanceStatus = () => {
+    const next = { research: 'bench', bench: 'locked' }[status];
+    if (next) CSL.setStatus(batch.id, next);
+  };
+
+  return (
+    <div style={{
+      background: 'var(--basalt-deep)',
+      border: '1px solid var(--rule-dark-2)',
+      borderRadius: 'var(--r-sm)',
+      overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '10px 14px 8px',
+        borderBottom: '1px solid var(--rule-dark-2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div style={{ fontFamily: 'var(--f-mono)', fontSize: 9.5, fontWeight: 700,
+                      letterSpacing: '0.18em', textTransform: 'uppercase',
+                      color: 'var(--bone-3)' }}>THE CAIRN LOOP</div>
+        <Stamp kind={status} />
+      </div>
+
+      {/* 5-step progress strip */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--rule-dark-2)' }}>
+        {LOOP_STAGES.map((s, i) => {
+          const isDone    = LOOP_STAGES.indexOf(LOOP_STAGES.find(x => x.key === currentKey)) > i;
+          const isActive  = s.key === currentKey;
+          return (
+            <div key={s.key} style={{
+              flex: 1,
+              padding: '8px 6px 6px',
+              borderRight: i < LOOP_STAGES.length - 1 ? '1px solid var(--rule-dark-2)' : 'none',
+              background: isActive ? 'rgba(196,117,58,0.12)' : 'transparent',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+            }}>
+              <div style={{
+                width: 18, height: 18,
+                borderRadius: 1,
+                background: isDone ? 'var(--good)' : isActive ? 'var(--fuse)' : 'var(--aggregate)',
+                border: `1px solid ${isDone ? 'var(--good)' : isActive ? 'var(--fuse-deep)' : 'var(--rule-dark-2)'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--f-mono)', fontSize: 9, color: isDone || isActive ? '#fff' : 'var(--bone-4)',
+                fontWeight: 700,
+              }}>{isDone ? '✓' : String(i + 1)}</div>
+              <div style={{
+                fontFamily: 'var(--f-mono)', fontSize: 8.5, letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: isActive ? 'var(--fuse-hot)' : isDone ? 'var(--good)' : 'var(--bone-4)',
+                textAlign: 'center',
+              }}>{s.label}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Current step detail */}
+      <div style={{ padding: '12px 14px' }}>
+        <div style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '0.16em',
+                      color: 'var(--fuse-hot)', marginBottom: 5, fontWeight: 700 }}>
+          YOU ARE HERE → {nextStage.label.toUpperCase()}
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--bone-3)', lineHeight: 1.6, marginBottom: 12 }}>
+          {nextStage.desc}
+        </div>
+
+        {/* Primary CTA */}
+        {nextStage.actionHref ? (
+          <a href={nextStage.actionHref} target="_blank"
+             className="btn btn--fuse"
+             style={{ textDecoration: 'none', justifyContent: 'center', width: '100%',
+                      display: 'flex', marginBottom: 6 }}>
+            ⬡ {nextStage.action}
+          </a>
+        ) : nextStage.actionBench ? (
+          <button className="btn btn--fuse" onClick={onBench}
+                  style={{ width: '100%', justifyContent: 'center', marginBottom: 6 }}>
+            {nextStage.action}
+          </button>
+        ) : nextStage.actionClone ? (
+          <button className="btn btn--fuse" onClick={onClone}
+                  style={{ width: '100%', justifyContent: 'center', marginBottom: 6 }}>
+            {nextStage.action}
+          </button>
+        ) : nextStage.actionModule ? (
+          <button className="btn btn--fuse" onClick={() => onModule(nextStage.actionModule)}
+                  style={{ width: '100%', justifyContent: 'center', marginBottom: 6 }}>
+            {nextStage.action}
+          </button>
+        ) : null}
+
+        {/* Advance status button */}
+        {status === 'research' && (
+          <button className="btn btn--ghost"
+                  style={{ width: '100%', justifyContent: 'center', fontSize: 10 }}
+                  onClick={advanceStatus}>
+            Mark as BENCH (batch made)
+          </button>
+        )}
+        {status === 'bench' && (
+          <button className="btn btn--ghost"
+                  style={{ width: '100%', justifyContent: 'center', fontSize: 10 }}
+                  onClick={advanceStatus}>
+            Lock formulation (results accepted)
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Right rail (Dashboard) ────────────────────────────────────
-function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onPreset }) {
+function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onModule }) {
   const metrics = CSL.radarMetrics(pred);
   const days = Math.floor((Date.now() - batch.createdAt) / 86400000);
   const totalLogs = (batch.benchLogs || []).length;
-
-  // Last break vs predicted (compute delta if exists)
   const lastBreak = (batch.benchLogs || []).find((l) => l.kind === 'break');
 
   return (
     <div className="rail">
-      {/* Batch header */}
+      {/* Batch ID + notes */}
       <div>
-        <div style={{
-          display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-          gap: 8,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
           <div>
-            <div className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.18em' }}>
-              ACTIVE BATCH
-            </div>
-            <div style={{
-              fontSize: 18, fontWeight: 800, letterSpacing: '-0.01em',
-              marginTop: 2, lineHeight: 1.15,
-            }}>{batch.name}</div>
+            <div className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.18em' }}>ACTIVE BATCH</div>
+            <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.01em',
+                          marginTop: 2, lineHeight: 1.15 }}>{batch.name}</div>
             <div className="mono dim" style={{ fontSize: 10, marginTop: 4, letterSpacing: '0.06em' }}>
-              {batch.id} · {days}d · {totalLogs} log{totalLogs === 1 ? '' : 's'}
+              {batch.id} · {days === 0 ? 'today' : `${days}d`} · {totalLogs} log{totalLogs === 1 ? '' : 's'}
             </div>
           </div>
-          <Stamp kind={batch.status} />
         </div>
         {batch.notes && (
           <div className="mono dim" style={{
-            fontSize: 10.5, marginTop: 8, lineHeight: 1.5,
-            padding: 8, background: 'var(--paper)',
-            border: '1px solid var(--rule-1)', borderLeft: '3px solid var(--concrete-300)',
-          }}>
-            {batch.notes}
-          </div>
+            fontSize: 10, marginTop: 8, lineHeight: 1.5, padding: '7px 10px',
+            background: 'var(--paper)', border: '1px solid var(--rule-1)',
+            borderLeft: '3px solid var(--concrete-300)',
+          }}>{batch.notes}</div>
         )}
       </div>
+
+      {/* The Cairn Loop — always top of rail */}
+      <CairnLoopCard batch={batch} pred={pred}
+                     onModule={onModule} onBench={onBench} onClone={onClone} />
 
       {/* Phase Compass */}
       <Card title="Phase Compass" dark
@@ -410,7 +574,7 @@ function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onPreset }) {
         <PerformanceRadar metrics={metrics} />
       </Card>
 
-      {/* Quick actions */}
+      {/* Actions */}
       <Card title="Actions">
         <div style={{ display: 'grid', gap: 6 }}>
           <a href="wizard.html" target="_blank"
@@ -418,14 +582,12 @@ function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onPreset }) {
              style={{ textDecoration: 'none', justifyContent: 'center' }}>
             ⬡ BATCH WIZARD
           </a>
-          <button className="btn btn--ghost" onClick={onClone}>+ CLONE &amp; MUTATE</button>
-          <button className="btn" onClick={onBench}>BENCH ENTRY</button>
           <button className="btn btn--ghost" onClick={onIpVault}>PRINT LAB SHEET</button>
           <button className="btn btn--ghost" onClick={onIpVault}>EXPORT IP VAULT</button>
         </div>
       </Card>
 
-      {/* Delta */}
+      {/* Delta — only when bench data exists */}
       {lastBreak && (
         <Card title="Predicted vs Actual">
           <DeltaRow label="Compressive break"

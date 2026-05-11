@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const STORAGE_KEY = 'csl.v1.state';
+  const STORAGE_KEY = 'csl.v2.state'; // v2: 4-phase schema, descriptive batch IDs
 
   // ── Helpers ─────────────────────────────────────────────────────
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
@@ -94,14 +94,14 @@
   const ENV_BASE = () => ({ tempC: 22, humidity: 55 });
 
   const OBJECTIVE_BASE = () => ({
-    compMin: 68,
-    flexMin: 8,
-    bondMin: 4.5,
-    rMin: 2.2,
-    workMin: 28,
-    cureMax: 86,
-    costMax: 1350,
-    densityMax: 2.45,
+    compMin:    85,   // MPa — FlintS-001 baseline predicts ~94 MPa
+    flexMin:    14,   // MPa — FlintS-001 baseline predicts ~17 MPa
+    bondMin:    5.5,  // MPa — Fuse-001 baseline predicts ~6.7 MPa
+    rMin:       1.8,  // m²K/W — Marrow-001 baseline predicts ~2.0 m²K/W
+    workMin:    28,   // min
+    cureMax:    88,   // °C
+    costMax:    1500, // $/m³
+    densityMax: 2.40,
   });
 
   const MODEL_INFO = {
@@ -415,41 +415,94 @@
     };
   }
 
-  // ── Preset batches (Tweak-controlled batch state) ───────────────
-  function makePreset(kind) {
-    const id = uid();
-    const now = Date.now();
-    const base = {
-      id, name: '', createdAt: now, status: 'research',
-      phases: PHASE_BASE(), seam: SEAM_BASE(), env: ENV_BASE(),
+  // ── Batch factory ────────────────────────────────────────────────
+  // Creates a clean, real batch record. No fake history.
+  function makeBatch({ id, name, phases, seam, env, notes, tags, lineage }) {
+    return ensureBatchShape({
+      id, name,
+      createdAt: Date.now(),
+      status:    'research',
+      phases:    { ...PHASE_BASE(), ...phases },
+      seam:      { ...SEAM_BASE(),  ...(seam || {}) },
+      env:       { ...ENV_BASE(),   ...(env  || {}) },
       objectives: OBJECTIVE_BASE(),
       measurements: [],
-      benchLogs: [], notes: '',
-      tags: ['mkp', 'bioceramic'],
-      lineage: { parentId: null, method: 'preset' },
-      model: MODEL_INFO,
-    };
-    if (kind === 'fresh') {
-      base.name = 'Fresh Pour';
-      base.status = 'research';
-      base.notes = 'Just-mixed sandbox iteration. Bench data pending.';
-    } else if (kind === 'fresh') {
-      base.name = 'Fresh Pour';
-      base.status = 'research';
-      base.notes = 'Just-mixed sandbox iteration. Bench data pending.';
-    }
-    return base;
+      benchLogs:    [],
+      notes:   notes || '',
+      tags:    tags  || ['mkp', 'bioceramic'],
+      lineage: lineage || { parentId: null, method: 'seed' },
+      model:   MODEL_INFO,
+    });
   }
 
-  // ── Seed corpus ─────────────────────────────────────────────────
+  // ── Optimised baseline seed corpus ──────────────────────────────
+  // Parameters chosen to maximise the prediction score for each layer.
+  // Predictions at these values (heuristic model):
+  //   FlintS-001: comp ~94 MPa, flex ~17 MPa, E ~20 GPa
+  //   FlintE-001: comp ~71 MPa, dense exterior, UV-stable face
+  //   Fuse-001  : bond ~6.7 MPa, work window ~42 min
+  //   Marrow-001: R ~2.0 m²K/W, density ~460 kg/m³
   function seedBatches() {
-    const out = [];
-    const b = makePreset('fresh');
-    b.id = 'B-001';
-    b.name = 'Formulation 001';
-    b.notes = 'Clean base pour mapped to 4-phase system.';
-    out.push(b);
-    return out;
+    return [
+      makeBatch({
+        id:   'FlintS-001',
+        name: 'FlintS-001 · Structural Baseline',
+        notes: 'Optimised starting point for Cairn Flint (Structural). ' +
+               'High basalt fiber + NanoHAp, low W/B. Clone to explore variations.',
+        tags: ['mkp', 'flint-s', 'baseline'],
+        phases: {
+          flint_s: {
+            MgPO4: 6.00, Borax: 5.50, BasaltFiber: 4.80,
+            NanoHAp: 1.80, WB: 0.19,
+            H2O2: 0, Perlite: 0, Retarder: 0, Thixo: 0, Seeds: 0, Surfactant: 0,
+          },
+        },
+      }),
+      makeBatch({
+        id:   'FlintE-001',
+        name: 'FlintE-001 · Exterior Baseline',
+        notes: 'Optimised starting point for Cairn Flint (Exterior). ' +
+               'High NanoHAp for surface hardness, low WB for density. UV-stable inorganic pigment added in Wizard.',
+        tags: ['mkp', 'flint-e', 'baseline'],
+        phases: {
+          flint_e: {
+            MgPO4: 6.40, Borax: 5.00, BasaltFiber: 1.50,
+            NanoHAp: 2.40, WB: 0.18,
+            H2O2: 0, Perlite: 0, Retarder: 0, Thixo: 0, Seeds: 0, Surfactant: 0,
+          },
+        },
+      }),
+      makeBatch({
+        id:   'Fuse-001',
+        name: 'Fuse-001 · Joint Baseline',
+        notes: 'Optimised starting point for Cairn Fuse. ' +
+               'High MKP seeds for nucleation at the cold joint. Thixo set for caulking-gun application.',
+        tags: ['mkp', 'fuse', 'baseline'],
+        phases: {
+          fuse: {
+            MgPO4: 6.40, Borax: 6.50, Retarder: 1.50,
+            Seeds: 1.00, Thixo: 72, WB: 0.20,
+            BasaltFiber: 0, NanoHAp: 0, H2O2: 0, Perlite: 0, Surfactant: 0,
+          },
+        },
+        seam: { type: 'dovetail', clearance: 5, roughness: 65, bondLength: 45, fillet: 2.0 },
+      }),
+      makeBatch({
+        id:   'Marrow-001',
+        name: 'Marrow-001 · Thermal Core Baseline',
+        notes: 'Optimised starting point for Cairn Marrow. ' +
+               'H₂O₂ + Perlite balanced for R > 1.8 m²K/W without foam collapse. ' +
+               'Protein surfactant CMC must be verified in KH₂PO₄ solution before each pour.',
+        tags: ['mkp', 'marrow', 'baseline'],
+        phases: {
+          marrow: {
+            MgPO4: 5.80, Borax: 2.00, H2O2: 2.00,
+            Perlite: 48, Surfactant: 0.80, WB: 0.30,
+            BasaltFiber: 0, NanoHAp: 0, Retarder: 0, Thixo: 0, Seeds: 0,
+          },
+        },
+      }),
+    ];
   }
 
   // ── Inventory (raw materials, with stock + flag) ────────────────
@@ -498,10 +551,13 @@
     return next;
   }
 
-  localStorage.removeItem('cairn'); // Clear old schema 
+  // Clear legacy keys from earlier schema versions
+  localStorage.removeItem('cairn');
+  localStorage.removeItem('csl.v1.state');
+
   let state = normalizeState(load() || {
     batches: seedBatches(),
-    activeId: 'B-001',
+    activeId: 'FlintS-001',
     activeModule: 'dashboard',
     inventory: INVENTORY,
     objectives: OBJECTIVE_BASE(),
@@ -563,35 +619,60 @@
     });
   }
 
-  function nextBatchId() {
-    const used = state.batches.map((b) => b.id).filter((id) => /^B-\d+$/.test(id));
-    const max = used.reduce((m, id) => Math.max(m, parseInt(id.slice(2), 10)), 0);
-    return 'B-' + String(max + 1).padStart(3, '0');
+  // ── Series-aware ID generator ────────────────────────────────────
+  // If source is "FlintS-001" the next is "FlintS-002".
+  // Falls back to "B-XXX" for non-series IDs.
+  function nextInSeries(sourceId) {
+    const m = sourceId && sourceId.match(/^([A-Za-z][A-Za-z0-9]*)-(\d+)$/);
+    if (!m) {
+      const nums = state.batches.map((b) => b.id).filter((id) => /^B-\d+$/.test(id))
+        .map((id) => parseInt(id.slice(2), 10));
+      return 'B-' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3, '0');
+    }
+    const prefix = m[1];
+    const nums = state.batches.map((b) => b.id)
+      .filter((id) => id.startsWith(prefix + '-'))
+      .map((id) => parseInt(id.slice(prefix.length + 1), 10))
+      .filter((n) => !isNaN(n));
+    return prefix + '-' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3, '0');
   }
+
+  function nextBatchId() { return nextInSeries('B-000'); }
+
   function cloneActive() {
     const src = getActive();
     if (!src) return;
     const copy = JSON.parse(JSON.stringify(src));
-    copy.id = nextBatchId();
-    copy.name = src.name.replace(/\([^)]+\)\s*$/, '').trim() + ' / Mutant';
+    copy.id = nextInSeries(src.id);
+    // Keep the series prefix, drop any prior generation suffix, add new ID
+    const baseName = src.name.replace(/\s*·.*$/, '').trim(); // strip " · ..." descriptor
+    copy.name = `${copy.id} · cloned from ${src.id}`;
     copy.status = 'research';
     copy.createdAt = Date.now();
     copy.benchLogs = [];
     copy.measurements = [];
-    copy.notes = `Cloned from ${src.id}.`;
+    copy.notes = `Cloned from ${src.id}. Edit formulation then run Wizard to make a batch.`;
     copy.lineage = { parentId: src.id, method: 'clone' };
     copy.model = MODEL_INFO;
     state.batches = [copy, ...state.batches];
     state.activeId = copy.id;
     save(state); emit();
   }
+
+  function setStatus(id, status) {
+    const i = state.batches.findIndex((b) => b.id === id);
+    if (i < 0) return;
+    state.batches[i].status = status;
+    save(state); emit();
+  }
+
   function applyPreset(kind) {
-    // Mutate the active batch to match a preset state (Tweaks).
-    const fresh = makePreset(kind);
+    // Kept for tweaks panel compatibility — resets phases to defaults.
     updateActive((b) => {
-      b.phases = fresh.phases; b.seam = fresh.seam; b.env = fresh.env;
-      b.status = fresh.status; b.benchLogs = fresh.benchLogs;
-      b.notes = fresh.notes;
+      b.phases = PHASE_BASE();
+      b.seam   = SEAM_BASE();
+      b.env    = ENV_BASE();
+      b.status = 'research';
       return b;
     });
   }
@@ -642,8 +723,8 @@
     setActiveId, setActiveModule,
     setPhaseVal, setSeamVal, setEnvVal, setBatchField,
     addBenchLog, addMeasurement, cloneActive, applyPreset, deleteBatch,
-    createCandidate, setObjective,
-    nextBatchId, makePreset,
+    createCandidate, setObjective, setStatus,
+    nextBatchId, nextInSeries, makeBatch,
     reset,
     // utils
     clamp, lerp, round,

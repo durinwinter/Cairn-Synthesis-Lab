@@ -1,7 +1,7 @@
 // analysis-modules.jsx — Kinetic, interface, and seam analysis pages.
 
 function KineticModule({ batch, pred }) {
-  const curves = ['flint', 'fuse', 'marrow'].map((phase) => ({
+  const curves = ['flint_s', 'fuse', 'marrow'].map((phase) => ({
     phase,
     points: CSL.exothermCurve(batch.phases[phase], batch.env, phase),
   }));
@@ -107,7 +107,8 @@ function ExothermChart({ curves, env }) {
   const maxT = Math.max(100, ...curves.flatMap((c) => c.points.map((p) => p.T)));
   const x = (t) => pad + (t / 120) * (w - pad * 2);
   const y = (T) => h - pad - ((T - env.tempC) / (maxT - env.tempC)) * (h - pad * 2);
-  const color = { flint: 'var(--flint)', fuse: 'var(--fuse)', marrow: 'var(--marrow-warm)' };
+  const color = { flint_s: 'var(--flint)', flint_e: 'var(--retarder)', fuse: 'var(--fuse)', marrow: 'var(--marrow-warm)' };
+  const label = { flint_s: 'FLINT (S)', flint_e: 'FLINT (E)', fuse: 'FUSE', marrow: 'MARROW' };
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="lab-chart">
       <line x1={pad} y1={y(env.tempC)} x2={w - pad} y2={y(env.tempC)} stroke="rgba(232,225,208,0.18)" />
@@ -119,7 +120,7 @@ function ExothermChart({ curves, env }) {
       ))}
       {curves.map((c, i) => (
         <text key={c.phase} x={pad + i * 112} y={18} fill={color[c.phase]} fontSize="11" fontFamily="monospace">
-          {c.phase.toUpperCase()}
+          {label[c.phase] || c.phase.toUpperCase()}
         </text>
       ))}
     </svg>

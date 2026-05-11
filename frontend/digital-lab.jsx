@@ -105,7 +105,7 @@ function ObjectiveCard({ batch, pred }) {
     { k: 'Wicking risk', value: pred.seam.wick, target: 0.7, unit: '', dir: 'max' },
     { k: 'Density', value: pred.flint_s.density, target: objective.densityMax, unit: 'g/cm³', dir: 'max' },
     { k: 'Cure peak', value: pred.flint_s.curePeak, target: objective.cureMax, unit: '°C', dir: 'max' },
-    { k: 'Cost limit', value: pred.cost.total, target: objective.costMax, unit: '$', dir: 'max' },
+    { k: 'Cost limit', value: pred.cost.total, target: objective.costMax, unit: '$/m³', dir: 'max', prefix: '$' },
   ];
   return (
     <Card title="Structural Objective Checks"
@@ -116,7 +116,7 @@ function ObjectiveCard({ batch, pred }) {
           return (
             <div key={c.k} className="objective-row" data-pass={pass ? '1' : '0'}>
               <span>{c.k}</span>
-              <strong>{Number(c.value).toFixed(c.value < 10 ? 2 : 1)} <em>{c.unit}</em></strong>
+              <strong>{c.prefix || ''}{Number(c.value).toFixed(c.value < 10 ? 2 : 1)} <em>{c.unit}</em></strong>
               <small>{c.dir === 'min' ? 'min' : 'max'} {c.target}</small>
             </div>
           );

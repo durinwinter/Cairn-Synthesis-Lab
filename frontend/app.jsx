@@ -293,7 +293,7 @@ function App() {
             onClone={() => CSL.cloneActive()}
             onBench={() => setBenchOpen(true)}
             onIpVault={() => setVaultOpen(true)}
-            onPreset={(k) => CSL.applyPreset(k)} />
+            onModule={(m) => CSL.setActiveModule(m)} />
         </aside>
       </div>
 
@@ -337,13 +337,10 @@ function TopBar({ batch, pred, activeModule, onModule, onBench, onClone, onHelp 
           <span className="dim">AMB</span> {batch.env.tempC}°C
           <span className="dim" style={{ marginLeft: 10 }}>RH</span> {batch.env.humidity}%
         </div>
-        <a href="wizard.html" target="_blank"
-           className="btn btn--ghost"
-           style={{ textDecoration: 'none' }}>⬡ BATCH WIZARD</a>
         <button className="btn btn--ghost" onClick={onBench}>+ BENCH</button>
         <button className="btn btn--fuse" onClick={onClone}>+ CLONE</button>
         <button className="btn btn--ghost" onClick={onHelp}
-                style={{ fontWeight: 700, minWidth: 32 }}>?</button>
+                style={{ fontWeight: 700, minWidth: 32, padding: '6px 10px' }}>?</button>
       </div>
     </header>
   );
@@ -355,6 +352,27 @@ function TopBar({ batch, pred, activeModule, onModule, onBench, onClone, onHelp 
 function Sidebar({ state, batchView, onPick }) {
   return (
     <aside className="sidebar">
+      {/* Wizard launch — fixed position, always visible */}
+      <a href="wizard.html" target="_blank" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        padding: '10px 14px',
+        background: 'var(--fuse)',
+        color: '#fff',
+        textDecoration: 'none',
+        fontFamily: 'var(--f-mono)',
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        borderBottom: '1px solid var(--fuse-deep)',
+        flexShrink: 0,
+      }}>
+        ⬡ Batch Wizard
+      </a>
+
       <div className="sidebar__sec">
         <div className="sidebar__hd">
           <div className="sidebar__k">PROJECTS · BATCHES</div>

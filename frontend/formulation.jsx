@@ -307,7 +307,7 @@ function PhaseCostWaterfall({ phase, data }) {
     push('Surfactant', 'Surfactant', base * data.Surfactant / 100, 'var(--fuse)');
   }
   const total = items.reduce((s, it) => s + it.value, 0);
-  return <Waterfall items={items} total={total} unit="USD / m³" />;
+  return <Waterfall items={items} total={total} unit="$ / m³" />;
 }
 
 Object.assign(window, { FormulationModule });

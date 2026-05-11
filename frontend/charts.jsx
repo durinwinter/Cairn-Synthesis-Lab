@@ -168,7 +168,7 @@ function PerformanceRadar({ metrics }) {
     { k: 'bond', label: 'BOND' },
     { k: 'insulation', label: 'INSULATION' },
     { k: 'workability', label: 'WORK WINDOW' },
-    { k: 'cost', label: 'COST €' },
+    { k: 'cost', label: 'COST $' },
   ];
   const n = axes.length;
   const ang = (i) => -Math.PI / 2 + (i / n) * Math.PI * 2;
@@ -729,7 +729,7 @@ function Waterfall({ items, total, unit = '$/m³' }) {
           <text x={b.x + bw / 2} y={b.top - 4} fontSize="10"
             fontFamily="IBM Plex Mono" fontWeight="700"
             textAnchor="middle" fill={C.ink}>
-            {b.value.toFixed(0)}
+            ${b.value.toFixed(0)}
           </text>
           <text x={b.x + bw / 2} y={M.t + ih + 14} fontSize="8.5"
             fontFamily="IBM Plex Mono" textAnchor="middle"
@@ -744,7 +744,7 @@ function Waterfall({ items, total, unit = '$/m³' }) {
       <text x={totalBar.x + bw / 2} y={totalBar.top - 4} fontSize="10"
         fontFamily="IBM Plex Mono" fontWeight="700"
         textAnchor="middle" fill={C.ink}>
-        {total.toFixed(0)}
+        ${total.toFixed(0)}
       </text>
       <text x={totalBar.x + bw / 2} y={M.t + ih + 14} fontSize="8.5"
         fontFamily="IBM Plex Mono" textAnchor="middle"
