@@ -24,17 +24,18 @@ function Dashboard({ batch, pred, onModule, onBench, onClone, onIpVault }) {
       {/* Ternary + cost waterfall */}
       <div className="row2">
         <Card title="Phase Stability · Ternary"
-              dark
-              right={<span className="dim-d mono" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>FLINT · MgO–KH₂PO₄–H₂O</span>}>
+          dark
+          right={<span className="dim-d mono" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>FLINT · MgO–KH₂PO₄–H₂O</span>}>
           <TernaryPlot batches={CSL.getState().batches} activeId={batch.id} />
         </Card>
         <Card title="Cost / m³ · Waterfall"
-              right={<span className="dim mono" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>USD · ALL PHASES</span>}>
+          right={<span className="dim mono" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>USD · ALL PHASES</span>}>
           <Waterfall
             items={[
-              { label: 'Flint',   value: pred.cost.flint,  color: 'var(--flint)' },
-              { label: 'Fuse',    value: pred.cost.fuse,   color: 'var(--fuse)' },
-              { label: 'Marrow',  value: pred.cost.marrow, color: 'var(--marrow-warm)' },
+              { label: 'Flint (S)', value: pred.cost.flint_s, color: 'var(--flint)' },
+              { label: 'Flint (E)', value: pred.cost.flint_e, color: 'var(--flint)' },
+              { label: 'Fuse', value: pred.cost.fuse, color: 'var(--fuse)' },
+              { label: 'Marrow', value: pred.cost.marrow, color: 'var(--marrow-warm)' },
             ]}
             total={pred.cost.total}
           />
@@ -43,7 +44,7 @@ function Dashboard({ batch, pred, onModule, onBench, onClone, onIpVault }) {
 
       {/* Bench log feed */}
       <Card title="Bench Log · Recent"
-            right={<button className="btn btn--ghost" onClick={onBench}>+ ENTRY</button>}>
+        right={<button className="btn btn--ghost" onClick={onBench}>+ ENTRY</button>}>
         <BenchFeed logs={batch.benchLogs} />
       </Card>
     </div>
@@ -75,11 +76,11 @@ function MasterMatrix({ batch, pred, onModule }) {
   return (
     <div className="row3" style={{ gap: 12 }}>
       <PhaseColumn
-        phase="flint"
+        phase="flint_s"
         accent="var(--flint)"
         title="FLINT"
         subtitle="Precast Structural Shell"
-        recipe={batch.phases.flint}
+        recipe={batch.phases.flint_s}
         recipeFields={[
           { k: 'MgPO4', label: 'Mg/PO₄', unit: '', warn: (v) => v > 7.5 || v < 5.0 },
           { k: 'Borax', label: 'Borax', unit: '%' },
@@ -88,13 +89,13 @@ function MasterMatrix({ batch, pred, onModule }) {
           { k: 'WB', label: 'W/B', unit: '' },
         ]}
         predictions={[
-          { k: 'Compressive',  v: pred.flint.comp,    unit: 'MPa' },
-          { k: 'Flexural',     v: pred.flint.flex,    unit: 'MPa' },
-          { k: 'E-modulus',    v: pred.flint.E,       unit: 'GPa' },
-          { k: 'Density',      v: pred.flint.density, unit: 'g/cm³' },
+          { k: 'Compressive', v: pred.flint_s.comp, unit: 'MPa' },
+          { k: 'Flexural', v: pred.flint_s.flex, unit: 'MPa' },
+          { k: 'E-modulus', v: pred.flint_s.E, unit: 'GPa' },
+          { k: 'Density', v: pred.flint_s.density, unit: 'g/cm³' },
         ]}
         onModule={onModule}
-        flash={pred.flint.flash}
+        flash={pred.flint_s.flash}
       />
       <PhaseColumn
         phase="fuse"
@@ -110,10 +111,10 @@ function MasterMatrix({ batch, pred, onModule }) {
           { k: 'Thixo', label: 'Thixotropy', unit: '' },
         ]}
         predictions={[
-          { k: 'Bond shear',   v: pred.fuse.bond,    unit: 'MPa' },
-          { k: 'Tensile',      v: pred.fuse.tensile, unit: 'MPa' },
-          { k: 'Work window',  v: pred.fuse.workMin, unit: 'min' },
-          { k: 'Viscosity',    v: pred.fuse.viscosity, unit: 'Pa·s' },
+          { k: 'Bond shear', v: pred.fuse.bond, unit: 'MPa' },
+          { k: 'Tensile', v: pred.fuse.tensile, unit: 'MPa' },
+          { k: 'Work window', v: pred.fuse.workMin, unit: 'min' },
+          { k: 'Viscosity', v: pred.fuse.viscosity, unit: 'Pa·s' },
         ]}
         onModule={onModule}
       />
@@ -131,10 +132,10 @@ function MasterMatrix({ batch, pred, onModule }) {
           { k: 'Surfactant', label: 'Surfactant', unit: '%' },
         ]}
         predictions={[
-          { k: 'Density',      v: pred.marrow.density, unit: 'kg/m³' },
-          { k: 'R-value',      v: pred.marrow.R,       unit: 'm²K/W' },
-          { k: 'Conductivity', v: pred.marrow.therm,   unit: 'W/mK' },
-          { k: 'Comp.',        v: pred.marrow.comp,    unit: 'MPa' },
+          { k: 'Density', v: pred.marrow.density, unit: 'kg/m³' },
+          { k: 'R-value', v: pred.marrow.R, unit: 'm²K/W' },
+          { k: 'Conductivity', v: pred.marrow.therm, unit: 'W/mK' },
+          { k: 'Comp.', v: pred.marrow.comp, unit: 'MPa' },
         ]}
         onModule={onModule}
       />
@@ -143,7 +144,7 @@ function MasterMatrix({ batch, pred, onModule }) {
 }
 
 function PhaseColumn({ phase, accent, title, subtitle, recipe, recipeFields,
-                       predictions, onModule, flash }) {
+  predictions, onModule, flash }) {
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="card__hd" style={{
@@ -226,11 +227,11 @@ function PhaseColumn({ phase, accent, title, subtitle, recipe, recipeFields,
           </Warning>
         )}
         <button className="btn btn--ghost" onClick={() => onModule('formulation', phase)}
-                style={{ alignSelf: 'flex-start' }}>
+          style={{ alignSelf: 'flex-start' }}>
           OPEN SANDBOX →
         </button>
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -245,7 +246,7 @@ function ModuleGrid({ onModule, pred }) {
           <line x1="0" y1="14" x2="120" y2="14" stroke="var(--rule-2)" />
           {[12, 28, 48, 68, 88, 108].map((x, i) => (
             <rect key={i} x={x - 4} y={6 + (i % 3) * 4} width="8" height={16 - (i % 3) * 4}
-                  fill={i === 2 ? 'var(--fuse)' : i === 4 ? 'var(--marrow-warm)' : 'var(--flint)'} />
+              fill={i === 2 ? 'var(--fuse)' : i === 4 ? 'var(--marrow-warm)' : 'var(--flint)'} />
           ))}
         </svg>
       ),
@@ -282,7 +283,7 @@ function ModuleGrid({ onModule, pred }) {
           <rect x="0" y="2" width="120" height="10" fill="var(--flint)" opacity="0.85" />
           <rect x="0" y="16" width="120" height="10" fill="var(--marrow-warm)" opacity="0.85" />
           <path d="M0 14 L20 14 L26 8 L40 8 L46 20 L60 20 L66 8 L80 8 L86 20 L100 20 L106 8 L120 8"
-                fill="none" stroke="var(--ink)" strokeWidth="1.4" />
+            fill="none" stroke="var(--ink)" strokeWidth="1.4" />
         </svg>
       ),
     },
@@ -399,13 +400,13 @@ function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onPreset }) {
 
       {/* Phase Compass */}
       <Card title="Phase Compass" dark
-            right={<span className="mono dim-d" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>STEER YOUR POUR</span>}>
+        right={<span className="mono dim-d" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>STEER YOUR POUR</span>}>
         <PhaseCompass metrics={metrics} />
       </Card>
 
       {/* Performance Radar */}
       <Card title="Performance Radar"
-            right={<span className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>0–100 NORM.</span>}>
+        right={<span className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>0–100 NORM.</span>}>
         <PerformanceRadar metrics={metrics} />
       </Card>
 
@@ -423,9 +424,9 @@ function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onPreset }) {
       {lastBreak && (
         <Card title="Predicted vs Actual">
           <DeltaRow label="Compressive break"
-                    actual={lastBreak.mpa}
-                    predicted={pred.flint.comp}
-                    unit="MPa" mode={lastBreak.mode} />
+            actual={lastBreak.mpa}
+            predicted={pred.flint_s.comp}
+            unit="MPa" mode={lastBreak.mode} />
         </Card>
       )}
     </div>

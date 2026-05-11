@@ -46,7 +46,7 @@ function DigitalLab({ state, batch, pred, onPick, onOpenFormulation }) {
       </div>
 
       <Card title="Next Experiments"
-            right={<span className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>LOCAL DOE · ACTIVE-LEARNING HEURISTIC</span>}>
+        right={<span className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>LOCAL DOE · ACTIVE-LEARNING HEURISTIC</span>}>
         <div className="candidate-grid">
           {candidates.map((c) => (
             <CandidateCard key={c.tempId} candidate={c} onCreate={() => CSL.createCandidate(c)} />
@@ -55,11 +55,11 @@ function DigitalLab({ state, batch, pred, onPick, onOpenFormulation }) {
       </Card>
 
       <Card title="Formulation Library"
-            right={<button className="btn btn--ghost" onClick={onOpenFormulation}>OPEN SANDBOX</button>}>
+        right={<button className="btn btn--ghost" onClick={onOpenFormulation}>OPEN SANDBOX</button>}>
         <div className="library-tools">
           <input value={query} onChange={(e) => setQuery(e.target.value)}
-                 placeholder="Search batches, notes, tags"
-                 className="lab-input" />
+            placeholder="Search batches, notes, tags"
+            className="lab-input" />
           <select value={status} onChange={(e) => setStatus(e.target.value)} className="lab-input">
             <option value="all">All states</option>
             <option value="research">Research</option>
@@ -78,7 +78,7 @@ function DigitalLab({ state, batch, pred, onPick, onOpenFormulation }) {
           </div>
           {rows.map(({ batch: b, summary: s, measured: m }) => (
             <button key={b.id} className="library-row" data-active={b.id === batch.id ? '1' : '0'}
-                    onClick={() => onPick(b.id)}>
+              onClick={() => onPick(b.id)}>
               <span>
                 <strong>{b.id}</strong> {b.name}
                 {m && <em>{m.avgBreak} MPa measured · n={m.n}</em>}
@@ -99,17 +99,17 @@ function DigitalLab({ state, batch, pred, onPick, onOpenFormulation }) {
 function ObjectiveCard({ batch, pred }) {
   const objective = batch.objectives || CSL.OBJECTIVE_BASE();
   const checks = [
-    { k: 'Flint compressive', value: pred.flint.comp, target: objective.compMin, unit: 'MPa', dir: 'min' },
-    { k: 'Flexural', value: pred.flint.flex, target: objective.flexMin, unit: 'MPa', dir: 'min' },
-    { k: 'Fuse bond', value: pred.fuse.bond, target: objective.bondMin, unit: 'MPa', dir: 'min' },
-    { k: 'Marrow R', value: pred.marrow.R, target: objective.rMin, unit: 'm²K/W', dir: 'min' },
-    { k: 'Work window', value: pred.fuse.workMin, target: objective.workMin, unit: 'min', dir: 'min' },
-    { k: 'Cure peak', value: pred.flint.curePeak, target: objective.cureMax, unit: '°C', dir: 'max' },
-    { k: 'Total cost', value: pred.cost.total, target: objective.costMax, unit: '$/m³', dir: 'max' },
+    { k: 'Flint compressive', value: pred.flint_s.comp, target: objective.compMin, unit: 'MPa', dir: 'min' },
+    { k: 'Flexural', value: pred.flint_s.flex, target: objective.flexMin, unit: 'MPa', dir: 'min' },
+    { k: 'Marrow R-value', value: pred.marrow.R, target: objective.rValueMin, unit: 'm²K/W', dir: 'min' },
+    { k: 'Wicking risk', value: pred.seam.wick, target: 0.7, unit: '', dir: 'max' },
+    { k: 'Density', value: pred.flint_s.density, target: objective.densityMax, unit: 'g/cm³', dir: 'max' },
+    { k: 'Cure peak', value: pred.flint_s.curePeak, target: objective.cureMax, unit: '°C', dir: 'max' },
+    { k: 'Cost limit', value: pred.cost.total, target: objective.costMax, unit: '$', dir: 'max' },
   ];
   return (
-    <Card title="Design Objectives"
-          right={<Stamp kind={pred.flint.flash ? 'failed' : 'research'}>{pred.flint.flash ? 'RISK' : 'SPEC'}</Stamp>}>
+    <Card title="Structural Objective Checks"
+      right={<Stamp kind={pred.flint_s.flash ? 'failed' : 'research'}>{pred.flint_s.flash ? 'RISK' : 'SPEC'}</Stamp>}>
       <div className="objective-list">
         {checks.map((c) => {
           const pass = c.dir === 'min' ? c.value >= c.target : c.value <= c.target;
@@ -124,13 +124,13 @@ function ObjectiveCard({ batch, pred }) {
       </div>
       <div className="objective-controls">
         <Slider label="Strength target" value={objective.compMin} min={30} max={120} step={1} unit=" MPa"
-                onChange={(v) => CSL.setObjective('compMin', v)} />
+          onChange={(v) => CSL.setObjective('compMin', v)} />
         <Slider label="Bond target" value={objective.bondMin} min={1} max={10} step={0.1} unit=" MPa"
-                onChange={(v) => CSL.setObjective('bondMin', v)} />
+          onChange={(v) => CSL.setObjective('bondMin', v)} />
         <Slider label="Insulation target" value={objective.rMin} min={0.8} max={5.5} step={0.1} unit=" m²K/W"
-                onChange={(v) => CSL.setObjective('rMin', v)} />
+          onChange={(v) => CSL.setObjective('rMin', v)} />
         <Slider label="Cost ceiling" value={objective.costMax} min={500} max={3000} step={25} unit=" $/m³"
-                onChange={(v) => CSL.setObjective('costMax', v)} />
+          onChange={(v) => CSL.setObjective('costMax', v)} />
       </div>
     </Card>
   );
@@ -139,7 +139,7 @@ function ObjectiveCard({ batch, pred }) {
 function ProvenanceCard({ batch, pred, features, measured }) {
   return (
     <Card title="Provenance & Features"
-          right={<span className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>GEMD-INSPIRED RECORD</span>}>
+      right={<span className="mono dim" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>GEMD-INSPIRED RECORD</span>}>
       <div className="provenance-grid">
         <KV k="Spec" v={batch.id} />
         <KV k="Lineage" v={batch.lineage.parentId || 'seed'} />
@@ -174,8 +174,10 @@ function CandidateCard({ candidate, onCreate }) {
         <span>${s.cost}</span>
       </div>
       <div className="candidate__why">
-        {candidate.batch.lineage.method || 'DOE'} · fiber {candidate.batch.phases.flint.BasaltFiber.toFixed(1)} ·
-        retarder {(candidate.batch.phases.fuse.Borax + candidate.batch.phases.fuse.Retarder).toFixed(1)}
+        <div className="mono dim" style={{ fontSize: 9.5 }}>
+          {candidate.batch.lineage.method || 'DOE'} · fiber {candidate.batch.phases.flint_s.BasaltFiber.toFixed(1)} ·
+          P-{candidate.batch.phases.marrow.Perlite}
+        </div>
       </div>
       <button className="btn btn--fuse" onClick={onCreate}>CREATE BATCH</button>
     </div>

@@ -6,24 +6,24 @@ const { useMemo, useState, useEffect, useRef } = React;
 
 // ─── Color helpers ───────────────────────────────────────────────
 const C = {
-  ink:    '#0e1014',
-  paper:  '#f1ebdb',
-  bone:   '#e8e1d0',
-  rule:   'rgba(20,18,12,0.18)',
-  rule1:  'rgba(20,18,12,0.10)',
-  flint:  '#4d6273',
-  fuse:   '#c4753a',
-  fuseHot:'#e29248',
+  ink: '#0e1014',
+  paper: '#f1ebdb',
+  bone: '#e8e1d0',
+  rule: 'rgba(20,18,12,0.18)',
+  rule1: 'rgba(20,18,12,0.10)',
+  flint: '#4d6273',
+  fuse: '#c4753a',
+  fuseHot: '#e29248',
   marrow: '#c9a878',
-  retarder:'#5d7d70',
-  good:   '#5c7a4f',
-  alert:  '#a8362c',
-  cool:   '#2c5f7c',
+  retarder: '#5d7d70',
+  good: '#5c7a4f',
+  alert: '#a8362c',
+  cool: '#2c5f7c',
   basalt: '#25282c',
   basaltDeep: '#16181b',
-  bone2:  '#b8b1a0',
-  bone3:  '#807a6e',
-  concrete:'#bdb5a4',
+  bone2: '#b8b1a0',
+  bone3: '#807a6e',
+  concrete: '#bdb5a4',
 };
 
 // Linear gradient between two hexes
@@ -48,9 +48,9 @@ function PhaseCompass({ metrics, target }) {
   const cx = W / 2, cy = H / 2 + 12;
   const R = 92;
   const corners = [
-    { label: 'STRUCTURE', sub: 'Flint',   color: C.flint,    angle: -Math.PI / 2,         pull: metrics.strength },
-    { label: 'INSULATION',sub: 'Marrow',  color: C.marrow,   angle: -Math.PI / 2 + 2.094, pull: metrics.insulation },
-    { label: 'BOND',      sub: 'Fuse',    color: C.fuse,     angle: -Math.PI / 2 + 4.188, pull: metrics.bond },
+    { label: 'STRUCTURE', sub: 'Flint', color: C.flint, angle: -Math.PI / 2, pull: metrics.strength },
+    { label: 'INSULATION', sub: 'Marrow', color: C.marrow, angle: -Math.PI / 2 + 2.094, pull: metrics.insulation },
+    { label: 'BOND', sub: 'Fuse', color: C.fuse, angle: -Math.PI / 2 + 4.188, pull: metrics.bond },
   ];
   const pts = corners.map((c) => ({
     x: cx + Math.cos(c.angle) * R,
@@ -87,18 +87,18 @@ function PhaseCompass({ metrics, target }) {
         const ring = pts.map((p) => [cx + (p.x - cx) * t, cy + (p.y - cy) * t]);
         return (
           <polygon key={i} points={ring.map((p) => p.join(',')).join(' ')}
-                   fill="none" stroke="rgba(232,225,208,0.10)"
-                   strokeWidth="0.5" strokeDasharray={i < 2 ? '2 3' : '0'} />
+            fill="none" stroke="rgba(232,225,208,0.10)"
+            strokeWidth="0.5" strokeDasharray={i < 2 ? '2 3' : '0'} />
         );
       })}
       {/* spokes */}
       {pts.map((p, i) => (
         <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y}
-              stroke="rgba(232,225,208,0.10)" strokeWidth="0.5" />
+          stroke="rgba(232,225,208,0.10)" strokeWidth="0.5" />
       ))}
       {/* outer triangle */}
       <polygon points={pts.map((p) => `${p.x},${p.y}`).join(' ')}
-               fill="none" stroke="rgba(232,225,208,0.30)" strokeWidth="1" />
+        fill="none" stroke="rgba(232,225,208,0.30)" strokeWidth="1" />
       {/* glow under pin */}
       <circle cx={rx} cy={ry} r="36" fill="url(#cmp-glow)" />
       {/* corner ticks + labels */}
@@ -110,15 +110,15 @@ function PhaseCompass({ metrics, target }) {
         return (
           <g key={i}>
             <rect x={p.x - 5} y={p.y - 5} width="10" height="10"
-                  fill={c.color} stroke="#16181b" strokeWidth="1" />
+              fill={c.color} stroke="#16181b" strokeWidth="1" />
             <text x={tx} y={ty} fill="#e8e1d0" fontSize="9"
-                  fontFamily="IBM Plex Mono" letterSpacing="0.14em"
-                  textAnchor={align} dy={i === 0 ? '-2' : '4'}>
+              fontFamily="IBM Plex Mono" letterSpacing="0.14em"
+              textAnchor={align} dy={i === 0 ? '-2' : '4'}>
               {c.label}
             </text>
             <text x={tx} y={ty + 11} fill="#807a6e" fontSize="8"
-                  fontFamily="IBM Plex Mono" letterSpacing="0.08em"
-                  textAnchor={align} dy={i === 0 ? '-2' : '4'}>
+              fontFamily="IBM Plex Mono" letterSpacing="0.08em"
+              textAnchor={align} dy={i === 0 ? '-2' : '4'}>
               {c.sub.toUpperCase()}
             </text>
           </g>
@@ -128,11 +128,11 @@ function PhaseCompass({ metrics, target }) {
       {tgt && (
         <g>
           <circle cx={tgt.x} cy={tgt.y} r="8" fill="none"
-                  stroke="rgba(232,225,208,0.4)" strokeWidth="1" strokeDasharray="2 2" />
+            stroke="rgba(232,225,208,0.4)" strokeWidth="1" strokeDasharray="2 2" />
           <line x1={tgt.x - 4} y1={tgt.y} x2={tgt.x + 4} y2={tgt.y}
-                stroke="rgba(232,225,208,0.4)" strokeWidth="0.5" />
+            stroke="rgba(232,225,208,0.4)" strokeWidth="0.5" />
           <line x1={tgt.x} y1={tgt.y - 4} x2={tgt.x} y2={tgt.y + 4}
-                stroke="rgba(232,225,208,0.4)" strokeWidth="0.5" />
+            stroke="rgba(232,225,208,0.4)" strokeWidth="0.5" />
         </g>
       )}
       {/* pin */}
@@ -147,7 +147,7 @@ function PhaseCompass({ metrics, target }) {
       </g>
       {/* axis ticks on rings (compass marks) */}
       <text x={cx} y={H - 8} fill="#807a6e" fontSize="8"
-            fontFamily="IBM Plex Mono" textAnchor="middle" letterSpacing="0.20em">
+        fontFamily="IBM Plex Mono" textAnchor="middle" letterSpacing="0.20em">
         PHASE COMPASS  ·  N {(metrics.strength * 100).toFixed(0)}  E {(metrics.insulation * 100).toFixed(0)}  W {(metrics.bond * 100).toFixed(0)}
       </text>
     </svg>
@@ -162,13 +162,13 @@ function PerformanceRadar({ metrics }) {
   const cx = W / 2, cy = H / 2 - 4;
   const R = 86;
   const axes = [
-    { k: 'strength',    label: 'STRENGTH' },
-    { k: 'stiffness',   label: 'STIFFNESS' },
-    { k: 'toughness',   label: 'TOUGHNESS' },
-    { k: 'bond',        label: 'BOND' },
-    { k: 'insulation',  label: 'INSULATION' },
+    { k: 'strength', label: 'STRENGTH' },
+    { k: 'stiffness', label: 'STIFFNESS' },
+    { k: 'toughness', label: 'TOUGHNESS' },
+    { k: 'bond', label: 'BOND' },
+    { k: 'insulation', label: 'INSULATION' },
     { k: 'workability', label: 'WORK WINDOW' },
-    { k: 'cost',        label: 'COST €' },
+    { k: 'cost', label: 'COST €' },
   ];
   const n = axes.length;
   const ang = (i) => -Math.PI / 2 + (i / n) * Math.PI * 2;
@@ -181,8 +181,8 @@ function PerformanceRadar({ metrics }) {
       {/* rings */}
       {[0.25, 0.5, 0.75, 1.0].map((t, i) => (
         <polygon key={i}
-                 points={axes.map((_, ii) => pt(ii, R * t).join(',')).join(' ')}
-                 fill="none" stroke={C.rule1} strokeWidth="0.5" />
+          points={axes.map((_, ii) => pt(ii, R * t).join(',')).join(' ')}
+          fill="none" stroke={C.rule1} strokeWidth="0.5" />
       ))}
       {/* spokes */}
       {axes.map((_, i) => {
@@ -191,7 +191,7 @@ function PerformanceRadar({ metrics }) {
       })}
       {/* fill */}
       <polygon points={polyPts.join(' ')} fill="rgba(196,117,58,0.20)"
-               stroke={C.fuse} strokeWidth="1.5" />
+        stroke={C.fuse} strokeWidth="1.5" />
       {/* vertex dots */}
       {axes.map((a, i) => {
         const [x, y] = pt(i, (metrics[a.k] || 0) * R);
@@ -205,13 +205,13 @@ function PerformanceRadar({ metrics }) {
         return (
           <g key={i}>
             <text x={x} y={y} fill={C.ink} fontSize="9"
-                  fontFamily="IBM Plex Mono" fontWeight="600"
-                  letterSpacing="0.12em" textAnchor={ax} dy={y < cy ? '-2' : '6'}>
+              fontFamily="IBM Plex Mono" fontWeight="600"
+              letterSpacing="0.12em" textAnchor={ax} dy={y < cy ? '-2' : '6'}>
               {a.label}
             </text>
             <text x={x} y={y} fill={C.ink} fontSize="11"
-                  fontFamily="IBM Plex Mono" fontWeight="700"
-                  textAnchor={ax} dy={y < cy ? '8' : '17'}>
+              fontFamily="IBM Plex Mono" fontWeight="700"
+              textAnchor={ax} dy={y < cy ? '8' : '17'}>
               {val}
             </text>
           </g>
@@ -242,11 +242,11 @@ function TernaryPlot({ batches, activeId }) {
 
   // Derive ternary coords from each batch's Flint phase
   const points = batches.map((b) => {
-    const r = b.phases.flint.MgPO4;
+    const r = b.phases.flint_s.MgPO4;
     // Convert Mg/PO4 molar ratio to MgO/KH2PO4 mass-ish split, plus W/B → H2O
     const mgo = clampN(r / (r + 1), 0.4, 0.85);
     const kp = 1 - mgo;
-    const h2o = b.phases.flint.WB * 1.3;
+    const h2o = b.phases.flint_s.WB * 1.3;
     return {
       id: b.id, status: b.status,
       pt: toXY({ mgo: mgo * (1 - h2o * 0.5), kp: kp * (1 - h2o * 0.5), h2o }),
@@ -263,11 +263,11 @@ function TernaryPlot({ batches, activeId }) {
       </defs>
       {/* flash-set zone */}
       <polygon
-        points={`${A[0]},${A[1]} ${(A[0]+cx)/2},${(A[1]+cy)/2} ${(cx+A[0])/2 - 30},${cy - 20}`}
+        points={`${A[0]},${A[1]} ${(A[0] + cx) / 2},${(A[1] + cy) / 2} ${(cx + A[0]) / 2 - 30},${cy - 20}`}
         fill="url(#hatch)" opacity="0.6" />
       {/* triangle */}
       <polygon points={`${A[0]},${A[1]} ${B[0]},${B[1]} ${C2[0]},${C2[1]}`}
-               fill="rgba(232,225,208,0.04)" stroke="rgba(232,225,208,0.4)" strokeWidth="1" />
+        fill="rgba(232,225,208,0.04)" stroke="rgba(232,225,208,0.4)" strokeWidth="1" />
       {/* gridlines */}
       {[0.25, 0.5, 0.75].map((t, i) => {
         const pa = [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t];
@@ -283,36 +283,36 @@ function TernaryPlot({ batches, activeId }) {
       })}
       {/* phase stability sweet-spot (small painted circle near center-top) */}
       <circle cx={cx + 2} cy={cy - 18} r="18" fill="rgba(92,122,79,0.18)"
-              stroke="rgba(92,122,79,0.55)" strokeWidth="0.8" strokeDasharray="2 2" />
+        stroke="rgba(92,122,79,0.55)" strokeWidth="0.8" strokeDasharray="2 2" />
       <text x={cx + 22} y={cy - 14} fill={C.bone2} fontSize="8.5"
-            fontFamily="IBM Plex Mono" letterSpacing="0.10em">
+        fontFamily="IBM Plex Mono" letterSpacing="0.10em">
         STABLE
       </text>
       {/* corner labels */}
       <text x={A[0]} y={A[1] - 8} fill={C.bone} fontSize="11"
-            fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="middle"
-            letterSpacing="0.10em">MgO</text>
+        fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="middle"
+        letterSpacing="0.10em">MgO</text>
       <text x={B[0] - 8} y={B[1] + 12} fill={C.bone} fontSize="11"
-            fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="end"
-            letterSpacing="0.10em">KH₂PO₄</text>
+        fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="end"
+        letterSpacing="0.10em">KH₂PO₄</text>
       <text x={C2[0] + 8} y={C2[1] + 12} fill={C.bone} fontSize="11"
-            fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="start"
-            letterSpacing="0.10em">H₂O</text>
+        fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="start"
+        letterSpacing="0.10em">H₂O</text>
       {/* points */}
       {points.map((p) => {
         const active = p.id === activeId;
         const color =
-          p.status === 'locked'   ? C.good :
-          p.status === 'bench'    ? C.fuse :
-          p.status === 'failed'   ? C.alert : C.flint;
+          p.status === 'locked' ? C.good :
+            p.status === 'bench' ? C.fuse :
+              p.status === 'failed' ? C.alert : C.flint;
         return (
           <g key={p.id} transform={`translate(${p.pt[0]}, ${p.pt[1]})`}>
             {active && <circle r="10" fill="none" stroke={C.fuseHot} strokeWidth="1.2" />}
             <rect x={-4} y={-4} width="8" height="8" fill={color}
-                  stroke={C.basaltDeep} strokeWidth="1" />
+              stroke={C.basaltDeep} strokeWidth="1" />
             {active && (
               <text x={8} y={-6} fill={C.bone} fontSize="9.5"
-                    fontFamily="IBM Plex Mono" fontWeight="700">
+                fontFamily="IBM Plex Mono" fontWeight="700">
                 {p.id}
               </text>
             )}
@@ -376,58 +376,58 @@ function ExothermCurve({ phase, env, overlays = [] }) {
       {/* y-axis labels */}
       {[20, 40, 60, 80, 100].map((v) => (
         <text key={v} x={M.l - 6} y={y(v)} fill={C.bone3} fontSize="9"
-              fontFamily="IBM Plex Mono" textAnchor="end" dy="3">
+          fontFamily="IBM Plex Mono" textAnchor="end" dy="3">
           {v}°
         </text>
       ))}
       {/* x-axis labels */}
       {[0, 20, 40, 60, 80, 100, 120].map((t) => (
         <text key={t} x={x(t)} y={H - M.b + 14} fill={C.bone3} fontSize="9"
-              fontFamily="IBM Plex Mono" textAnchor="middle">
+          fontFamily="IBM Plex Mono" textAnchor="middle">
           {t}m
         </text>
       ))}
       {/* working-window band */}
       <rect x={x(0)} y={M.t} width={x(main.peakT * 0.8) - x(0)}
-            height={ih} fill="rgba(92,125,112,0.10)" />
+        height={ih} fill="rgba(92,125,112,0.10)" />
       <text x={x(main.peakT * 0.4)} y={M.t + 14} fill={C.retarder} fontSize="9"
-            fontFamily="IBM Plex Mono" textAnchor="middle" letterSpacing="0.16em">
+        fontFamily="IBM Plex Mono" textAnchor="middle" letterSpacing="0.16em">
         ◀  WORKING WINDOW
       </text>
       {/* overlays */}
       {series.map((s, i) => (
         <g key={i}>
           <path d={pathOf(s.pts)} fill="none" stroke={s.color}
-                strokeWidth="1.2" strokeDasharray="3 3" opacity="0.7" />
+            strokeWidth="1.2" strokeDasharray="3 3" opacity="0.7" />
           <text x={x(s.peakT)} y={y(s.peakV) - 6} fill={s.color}
-                fontSize="9" fontFamily="IBM Plex Mono">{s.label}</text>
+            fontSize="9" fontFamily="IBM Plex Mono">{s.label}</text>
         </g>
       ))}
       {/* main curve */}
       <path d={pathOf(main.pts)} fill="none" stroke={C.fuseHot}
-            strokeWidth="2.2" />
+        strokeWidth="2.2" />
       {/* peak marker */}
       <g>
         <line x1={x(main.peakT)} y1={y(main.peakV)} x2={x(main.peakT)} y2={M.t + ih}
-              stroke={C.fuseHot} strokeWidth="0.6" strokeDasharray="2 2" />
+          stroke={C.fuseHot} strokeWidth="0.6" strokeDasharray="2 2" />
         <circle cx={x(main.peakT)} cy={y(main.peakV)} r="4" fill={C.fuseHot}
-                stroke={C.basaltDeep} strokeWidth="1.2" />
+          stroke={C.basaltDeep} strokeWidth="1.2" />
         <text x={x(main.peakT) + 8} y={y(main.peakV) - 4} fill={C.fuseHot}
-              fontSize="10" fontFamily="IBM Plex Mono" fontWeight="700">
+          fontSize="10" fontFamily="IBM Plex Mono" fontWeight="700">
           PEAK  {main.peakV.toFixed(1)}°C
         </text>
         <text x={x(main.peakT) + 8} y={y(main.peakV) + 8} fill={C.bone2}
-              fontSize="9" fontFamily="IBM Plex Mono">
+          fontSize="9" fontFamily="IBM Plex Mono">
           T+{main.peakT.toFixed(0)} min
         </text>
       </g>
       {/* axis titles */}
       <text x={M.l} y={M.t - 4} fill={C.bone3} fontSize="9"
-            fontFamily="IBM Plex Mono" letterSpacing="0.14em">
+        fontFamily="IBM Plex Mono" letterSpacing="0.14em">
         TEMPERATURE  / °C
       </text>
       <text x={W - M.r} y={H - 4} fill={C.bone3} fontSize="9"
-            fontFamily="IBM Plex Mono" textAnchor="end" letterSpacing="0.14em">
+        fontFamily="IBM Plex Mono" textAnchor="end" letterSpacing="0.14em">
         TIME FROM MIX  / min
       </text>
     </svg>
@@ -457,14 +457,14 @@ function StressHeatmap({ joint, fillet = 1, intensity = 1 }) {
         // 3 dovetail teeth
         const seg = (t * 3) % 1;
         y = (seg < 0.2) ? (seg / 0.2) * 22 :
-            (seg < 0.5) ? 22 :
+          (seg < 0.5) ? 22 :
             (seg < 0.7) ? 22 - ((seg - 0.5) / 0.2) * 44 :
-            (seg < 0.9) ? -22 :
-            -22 + ((seg - 0.9) / 0.1) * 22;
+              (seg < 0.9) ? -22 :
+                -22 + ((seg - 0.9) / 0.1) * 22;
       } else if (joint === 'shiplap') {
         const seg = (t * 2) % 1;
         y = (seg < 0.45) ? 14 :
-            (seg < 0.55) ? 14 - ((seg - 0.45) / 0.10) * 28 :
+          (seg < 0.55) ? 14 - ((seg - 0.45) / 0.10) * 28 :
             -14;
       } else if (joint === 'shark') {
         const seg = (t * 7) % 1;
@@ -478,9 +478,9 @@ function StressHeatmap({ joint, fillet = 1, intensity = 1 }) {
   }
 
   const { xs, ys } = profile();
-  const upper = `M ${left} ${top} L ${xs.map((x, i) => `${x.toFixed(1)} ${(ys[i] - seamH/2).toFixed(1)}`).join(' L ')} L ${right} ${top} Z`;
-  const lower = `M ${left} ${bot} L ${xs.map((x, i) => `${x.toFixed(1)} ${(ys[i] + seamH/2).toFixed(1)}`).join(' L ')} L ${right} ${bot} Z`;
-  const fusePath = `M ${left} ${top} L ${xs.map((x, i) => `${x.toFixed(1)} ${(ys[i] - seamH/2).toFixed(1)}`).join(' L ')} L ${right} ${top} L ${right} ${bot} L ${xs.slice().reverse().map((x, i) => `${x.toFixed(1)} ${(ys[ys.length - 1 - i] + seamH/2).toFixed(1)}`).join(' L ')} L ${left} ${bot} Z`;
+  const upper = `M ${left} ${top} L ${xs.map((x, i) => `${x.toFixed(1)} ${(ys[i] - seamH / 2).toFixed(1)}`).join(' L ')} L ${right} ${top} Z`;
+  const lower = `M ${left} ${bot} L ${xs.map((x, i) => `${x.toFixed(1)} ${(ys[i] + seamH / 2).toFixed(1)}`).join(' L ')} L ${right} ${bot} Z`;
+  const fusePath = `M ${left} ${top} L ${xs.map((x, i) => `${x.toFixed(1)} ${(ys[i] - seamH / 2).toFixed(1)}`).join(' L ')} L ${right} ${top} L ${right} ${bot} L ${xs.slice().reverse().map((x, i) => `${x.toFixed(1)} ${(ys[ys.length - 1 - i] + seamH / 2).toFixed(1)}`).join(' L ')} L ${left} ${bot} Z`;
 
   // Stress hot-spots at concave corners
   const hotspots = [];
@@ -533,15 +533,15 @@ function StressHeatmap({ joint, fillet = 1, intensity = 1 }) {
       ))}
       {/* labels */}
       <text x={left + 6} y={top + 14} fill="#e8e1d0" fontSize="9"
-            fontFamily="IBM Plex Mono" fontWeight="700" letterSpacing="0.18em">
+        fontFamily="IBM Plex Mono" fontWeight="700" letterSpacing="0.18em">
         FLINT
       </text>
       <text x={left + 6} y={bot - 6} fill="#3a2a14" fontSize="9"
-            fontFamily="IBM Plex Mono" fontWeight="700" letterSpacing="0.18em">
+        fontFamily="IBM Plex Mono" fontWeight="700" letterSpacing="0.18em">
         MARROW
       </text>
       <text x={right - 6} y={midC + 3} fill="#fff" fontSize="9"
-            fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="end" letterSpacing="0.18em">
+        fontFamily="IBM Plex Mono" fontWeight="700" textAnchor="end" letterSpacing="0.18em">
         FUSE
       </text>
     </svg>
@@ -582,8 +582,8 @@ function PorosityHeatmap({ h2o2, perlite }) {
             <rect x={x} y={y} width={cw - 0.5} height={ch - 0.5} fill={color} />
             {bubble && (
               <circle cx={x + cw / 2} cy={y + ch / 2}
-                      r={Math.min(cw, ch) * 0.30 * t}
-                      fill="#16181b" opacity={0.5} />
+                r={Math.min(cw, ch) * 0.30 * t}
+                fill="#16181b" opacity={0.5} />
             )}
           </g>
         );
@@ -597,9 +597,9 @@ function PorosityHeatmap({ h2o2, perlite }) {
         </linearGradient>
       </defs>
       <text x="6" y={H - 18} fill={C.bone3} fontSize="8" fontFamily="IBM Plex Mono"
-            letterSpacing="0.16em">DENSE</text>
+        letterSpacing="0.16em">DENSE</text>
       <text x="86" y={H - 18} fill={C.bone3} fontSize="8" fontFamily="IBM Plex Mono"
-            letterSpacing="0.16em">POROUS</text>
+        letterSpacing="0.16em">POROUS</text>
     </svg>
   );
 }
@@ -648,27 +648,27 @@ function StressStrain({ pred, fiberPct }) {
       </g>
       {[0, 30, 60, 90, 120].map((v) => (
         <text key={v} x={M.l - 6} y={y(v)} fontSize="9" fontFamily="IBM Plex Mono"
-              fill={C.ink} textAnchor="end" dy="3">{v}</text>
+          fill={C.ink} textAnchor="end" dy="3">{v}</text>
       ))}
       {[0, 0.003, 0.006, 0.009, 0.012].map((s) => (
         <text key={s} x={x(s)} y={H - M.b + 13} fontSize="9" fontFamily="IBM Plex Mono"
-              fill={C.ink} textAnchor="middle">{(s * 1000).toFixed(1)}‰</text>
+          fill={C.ink} textAnchor="middle">{(s * 1000).toFixed(1)}‰</text>
       ))}
       {/* fills */}
       <path d={fillOf(loaded.pts)} fill="rgba(196,117,58,0.15)" />
-      <path d={fillOf(neat.pts)}   fill="rgba(77,98,115,0.10)" />
+      <path d={fillOf(neat.pts)} fill="rgba(77,98,115,0.10)" />
       {/* lines */}
       <path d={pathOf(neat.pts)} stroke={C.flint} strokeWidth="1.4"
-            fill="none" strokeDasharray="3 3" />
+        fill="none" strokeDasharray="3 3" />
       <path d={pathOf(loaded.pts)} stroke={C.fuse} strokeWidth="2" fill="none" />
       {/* peak markers */}
       <circle cx={x(loaded.peakS)} cy={y(loaded.peak)} r="3" fill={C.fuse} />
-      <circle cx={x(neat.peakS)}   cy={y(neat.peak)}   r="3" fill={C.flint} />
+      <circle cx={x(neat.peakS)} cy={y(neat.peak)} r="3" fill={C.flint} />
       {/* axis titles */}
       <text x={M.l} y={M.t - 2} fontSize="9" fontFamily="IBM Plex Mono"
-            fill={C.ink} letterSpacing="0.14em">σ / MPa</text>
+        fill={C.ink} letterSpacing="0.14em">σ / MPa</text>
       <text x={W - M.r} y={H - 4} fontSize="9" fontFamily="IBM Plex Mono"
-            fill={C.ink} textAnchor="end" letterSpacing="0.14em">ε (strain)</text>
+        fill={C.ink} textAnchor="end" letterSpacing="0.14em">ε (strain)</text>
       {/* legend */}
       <g transform={`translate(${M.l + 12} ${M.t + 8})`}>
         <rect width="10" height="2" y="4" fill={C.flint} />
@@ -715,44 +715,44 @@ function Waterfall({ items, total, unit = '$/m³' }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
       <line x1={M.l} y1={M.t + ih} x2={W - M.r} y2={M.t + ih}
-            stroke={C.rule} strokeWidth="1" />
+        stroke={C.rule} strokeWidth="1" />
       {bars.map((b, i) => (
         <g key={i}>
           <rect x={b.x} y={b.top} width={bw} height={b.h} fill={b.color}
-                stroke={C.ink} strokeWidth="0.5" />
+            stroke={C.ink} strokeWidth="0.5" />
           {/* connector line */}
           {i < bars.length - 1 && (
             <line x1={b.x + bw} y1={i === bars.length - 1 ? b.top : b.top + (b.sign ? 0 : b.h)}
-                  x2={bars[i + 1].x} y2={i === bars.length - 1 ? b.top : b.top + (b.sign ? 0 : b.h)}
-                  stroke={C.rule} strokeWidth="0.5" strokeDasharray="2 2" />
+              x2={bars[i + 1].x} y2={i === bars.length - 1 ? b.top : b.top + (b.sign ? 0 : b.h)}
+              stroke={C.rule} strokeWidth="0.5" strokeDasharray="2 2" />
           )}
           <text x={b.x + bw / 2} y={b.top - 4} fontSize="10"
-                fontFamily="IBM Plex Mono" fontWeight="700"
-                textAnchor="middle" fill={C.ink}>
+            fontFamily="IBM Plex Mono" fontWeight="700"
+            textAnchor="middle" fill={C.ink}>
             {b.value.toFixed(0)}
           </text>
           <text x={b.x + bw / 2} y={M.t + ih + 14} fontSize="8.5"
-                fontFamily="IBM Plex Mono" textAnchor="middle"
-                fill={C.ink} letterSpacing="0.10em">
+            fontFamily="IBM Plex Mono" textAnchor="middle"
+            fill={C.ink} letterSpacing="0.10em">
             {b.label.toUpperCase()}
           </text>
         </g>
       ))}
       {/* total */}
       <rect x={totalBar.x} y={totalBar.top} width={bw} height={totalBar.h}
-            fill={C.ink} stroke={C.ink} strokeWidth="0.5" />
+        fill={C.ink} stroke={C.ink} strokeWidth="0.5" />
       <text x={totalBar.x + bw / 2} y={totalBar.top - 4} fontSize="10"
-            fontFamily="IBM Plex Mono" fontWeight="700"
-            textAnchor="middle" fill={C.ink}>
+        fontFamily="IBM Plex Mono" fontWeight="700"
+        textAnchor="middle" fill={C.ink}>
         {total.toFixed(0)}
       </text>
       <text x={totalBar.x + bw / 2} y={M.t + ih + 14} fontSize="8.5"
-            fontFamily="IBM Plex Mono" textAnchor="middle"
-            fill={C.ink} fontWeight="700" letterSpacing="0.10em">
+        fontFamily="IBM Plex Mono" textAnchor="middle"
+        fill={C.ink} fontWeight="700" letterSpacing="0.10em">
         TOTAL
       </text>
       <text x={totalBar.x + bw / 2} y={M.t + ih + 28} fontSize="8" fontFamily="IBM Plex Mono"
-            fill={C.ink} textAnchor="middle" letterSpacing="0.16em">
+        fill={C.ink} textAnchor="middle" letterSpacing="0.16em">
         {unit}
       </text>
     </svg>
@@ -829,10 +829,10 @@ function RingGauge({ value, label, color = C.fuse, size = 60 }) {
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={C.rule} strokeWidth="3" />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="3"
-              strokeDasharray={circ} strokeDashoffset={off}
-              transform={`rotate(-90 ${cx} ${cy})`} strokeLinecap="butt" />
+        strokeDasharray={circ} strokeDashoffset={off}
+        transform={`rotate(-90 ${cx} ${cy})`} strokeLinecap="butt" />
       <text x={cx} y={cy} fontSize="11" fontFamily="IBM Plex Mono" fontWeight="700"
-            textAnchor="middle" dy="4" fill={C.ink}>{Math.round(value * 100)}</text>
+        textAnchor="middle" dy="4" fill={C.ink}>{Math.round(value * 100)}</text>
     </svg>
   );
 }

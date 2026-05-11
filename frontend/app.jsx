@@ -207,8 +207,11 @@ function App() {
         return res.json();
       }
       try {
-        const bodyF = JSON.stringify({ params: batchView.phases.flint, env: batchView.env });
-        const flintData = await postPrediction('http://127.0.0.1:8000/api/predict/flint', bodyF);
+        const bodyFS = JSON.stringify({ params: batchView.phases.flint_s, env: batchView.env });
+        const flintDataS = await postPrediction('http://127.0.0.1:8000/api/predict/flint', bodyFS);
+
+        const bodyFE = JSON.stringify({ params: batchView.phases.flint_e, env: batchView.env });
+        const flintDataE = await postPrediction('http://127.0.0.1:8000/api/predict/flint', bodyFE);
 
         const bodyB = JSON.stringify({ params: batchView.phases.fuse, env: batchView.env });
         const fuseData = await postPrediction('http://127.0.0.1:8000/api/predict/fuse', bodyB);
@@ -218,18 +221,19 @@ function App() {
 
         if (canceled) return;
 
-        const normalized = normalizeApiPredictions(flintData, fuseData, marrowData);
+        const normalized = normalizeApiPredictions(flintDataS, fuseData, marrowData);
 
         // Merge back into pred format
         const seam = CSL.predictSeam(batchView.seam, normalized.marrow, normalized.fuse);
         const cost = {
-          flint: CSL.costPhase(batchView.phases.flint),
+          flint_s: CSL.costPhase(batchView.phases.flint_s),
+          flint_e: CSL.costPhase(batchView.phases.flint_e),
           fuse: CSL.costPhase(batchView.phases.fuse),
           marrow: CSL.costPhase(batchView.phases.marrow),
         };
-        cost.total = cost.flint + cost.fuse + cost.marrow;
+        cost.total = cost.flint_s + cost.flint_e + cost.fuse + cost.marrow;
 
-        setPred({ ...normalized, seam, cost });
+        setPred({ flint_s: flintDataS, flint_e: flintDataE, fuse: fuseData, marrow: marrowData, seam, cost });
       } catch (err) {
         if (!canceled) {
           console.warn('API fetch failed, falling back to local JS calculation');
@@ -243,7 +247,7 @@ function App() {
 
   const [benchOpen, setBenchOpen] = appUseState(false);
   const [vaultOpen, setVaultOpen] = appUseState(false);
-  const [initialPhase, setInitialPhase] = appUseState('flint');
+  const [initialPhase, setInitialPhase] = appUseState('flint_s');
 
   const goModule = (id, phase) => {
     CSL.setActiveModule(id);
@@ -446,10 +450,10 @@ function BenchOverlay({ batch, pred, onClose }) {
                     </div>
                     {mpa && (
                       <div className="mono dim" style={{ fontSize: 11, marginTop: 6, letterSpacing: '0.06em' }}>
-                        Predicted (Flint comp): {pred.flint.comp.toFixed(1)} MPa  ·
+                        Predicted (Flint comp): {pred.flint_s.comp.toFixed(1)} MPa  ·
                         Δ <strong style={{
-                          color: (parseFloat(mpa) - pred.flint.comp) < 0 ? 'var(--alert)' : 'var(--good)',
-                        }}>{(parseFloat(mpa) - pred.flint.comp).toFixed(1)} MPa</strong>
+                          color: (parseFloat(mpa) - pred.flint_s.comp) < 0 ? 'var(--alert)' : 'var(--good)',
+                        }}>{(parseFloat(mpa) - pred.flint_s.comp).toFixed(1)} MPa</strong>
                       </div>
                     )}
                   </div>
@@ -511,8 +515,8 @@ function BenchOverlay({ batch, pred, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Card title="What the Model Predicts">
                 <div className="ruled">
-                  <div><span className="k">Flint comp.</span><span className="v">{pred.flint.comp.toFixed(1)} MPa</span></div>
-                  <div><span className="k">Flint flex.</span><span className="v">{pred.flint.flex.toFixed(1)} MPa</span></div>
+                  <div><span className="k">Flint comp.</span><span className="v">{pred.flint_s.comp.toFixed(1)} MPa</span></div>
+                  <div><span className="k">Flint flex.</span><span className="v">{pred.flint_s.flex.toFixed(1)} MPa</span></div>
                   <div><span className="k">Fuse bond</span><span className="v">{pred.fuse.bond.toFixed(2)} MPa</span></div>
                   <div><span className="k">Marrow R</span><span className="v">{pred.marrow.R.toFixed(2)} m²K/W</span></div>
                 </div>
@@ -578,7 +582,7 @@ function IpVaultOverlay({ batch, pred, onClose }) {
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24 }}>
-              {['flint', 'fuse', 'marrow'].map((ph) => (
+              {['flint_s', 'flint_e', 'fuse', 'marrow'].map((ph) => (
                 <div key={ph}>
                   <h3 className="mono" style={{
                     fontSize: 11, letterSpacing: '0.22em',
@@ -612,9 +616,9 @@ function IpVaultOverlay({ batch, pred, onClose }) {
             </h3>
             <table style={{ width: '100%', fontSize: 11.5, borderCollapse: 'collapse' }}>
               <tbody>
-                <tr><td>Flint compressive</td><td className="mono" style={{ textAlign: 'right' }}>{pred.flint.comp.toFixed(1)} MPa</td>
+                <tr><td>Flint (S) compressive</td><td className="mono" style={{ textAlign: 'right' }}>{pred.flint_s.comp.toFixed(1)} MPa</td>
                   <td>Fuse bond shear</td><td className="mono" style={{ textAlign: 'right' }}>{pred.fuse.bond.toFixed(2)} MPa</td></tr>
-                <tr><td>Flint flexural</td><td className="mono" style={{ textAlign: 'right' }}>{pred.flint.flex.toFixed(1)} MPa</td>
+                <tr><td>Flint (S) flexural</td><td className="mono" style={{ textAlign: 'right' }}>{pred.flint_s.flex.toFixed(1)} MPa</td>
                   <td>Fuse work window</td><td className="mono" style={{ textAlign: 'right' }}>{pred.fuse.workMin} min</td></tr>
                 <tr><td>Marrow R-value</td><td className="mono" style={{ textAlign: 'right' }}>{pred.marrow.R.toFixed(2)} m²K/W</td>
                   <td>Marrow density</td><td className="mono" style={{ textAlign: 'right' }}>{pred.marrow.density.toFixed(0)} kg/m³</td></tr>

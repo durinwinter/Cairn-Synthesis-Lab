@@ -12,9 +12,9 @@
 
   // ── Helpers ─────────────────────────────────────────────────────
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-  const lerp  = (a, b, t) => a + (b - a) * t;
+  const lerp = (a, b, t) => a + (b - a) * t;
   const round = (n, d = 1) => Math.round(n * 10 ** d) / 10 ** d;
-  const uid   = () => 'b' + Math.random().toString(36).slice(2, 8);
+  const uid = () => 'b' + Math.random().toString(36).slice(2, 8);
 
   // ── Cost coefficients ($/kg) ────────────────────────────────────
   const COSTS = {
@@ -25,26 +25,42 @@
 
   // ── Joint profiles ──────────────────────────────────────────────
   const JOINTS = {
-    butt:     { name: 'Butt',      thermal: 1.00, shearK: 1.00, surfaceK: 1.00, stressK: 0.40,
-                desc: 'Flat contact. Baseline.' },
-    dovetail: { name: 'Dovetail',  thermal: 1.42, shearK: 2.20, surfaceK: 1.65, stressK: 1.30,
-                desc: 'Mechanical interlock. Resists peel.' },
-    shiplap:  { name: 'Ship-lap',  thermal: 1.78, shearK: 1.50, surfaceK: 1.40, stressK: 0.60,
-                desc: 'Z-joint. Tortuous thermal path.' },
-    shark:    { name: 'Shark Tooth', thermal: 2.35, shearK: 2.70, surfaceK: 2.50, stressK: 1.50,
-                desc: 'Serrated. Max bite into Marrow pith.' },
+    butt: {
+      name: 'Butt', thermal: 1.00, shearK: 1.00, surfaceK: 1.00, stressK: 0.40,
+      desc: 'Flat contact. Baseline.'
+    },
+    dovetail: {
+      name: 'Dovetail', thermal: 1.42, shearK: 2.20, surfaceK: 1.65, stressK: 1.30,
+      desc: 'Mechanical interlock. Resists peel.'
+    },
+    shiplap: {
+      name: 'Ship-lap', thermal: 1.78, shearK: 1.50, surfaceK: 1.40, stressK: 0.60,
+      desc: 'Z-joint. Tortuous thermal path.'
+    },
+    shark: {
+      name: 'Shark Tooth', thermal: 2.35, shearK: 2.70, surfaceK: 2.50, stressK: 1.50,
+      desc: 'Serrated. Max bite into Marrow pith.'
+    },
   };
 
   // ── Default phase recipes ───────────────────────────────────────
   // Each phase has a slot for every parameter the UI exposes, even if
   // it's zero for that phase — keeps the schema flat for the matrix view.
   const PHASE_BASE = () => ({
-    flint: {
+    flint_s: {
       MgPO4: 6.20,          // molar ratio
       Borax: 4.20,          // wt%
       BasaltFiber: 3.00,    // vol%
       NanoHAp: 0.80,        // wt%
       WB: 0.22,             // water / binder
+      H2O2: 0, Perlite: 0, Retarder: 0, Thixo: 0, Seeds: 0, Surfactant: 0,
+    },
+    flint_e: {
+      MgPO4: 6.40,
+      Borax: 4.80,
+      BasaltFiber: 1.50,    // Less fiber for smoother finish
+      NanoHAp: 2.40,        // More HAp for surface hardness and densification
+      WB: 0.18,             // Denser mix
       H2O2: 0, Perlite: 0, Retarder: 0, Thixo: 0, Seeds: 0, Surfactant: 0,
     },
     fuse: {
@@ -103,7 +119,8 @@
     b.phases = {
       ...PHASE_BASE(),
       ...(b.phases || {}),
-      flint: { ...PHASE_BASE().flint, ...((b.phases && b.phases.flint) || {}) },
+      flint_s: { ...PHASE_BASE().flint_s, ...((b.phases && b.phases.flint_s) || {}) },
+      flint_e: { ...PHASE_BASE().flint_e, ...((b.phases && b.phases.flint_e) || {}) },
       fuse: { ...PHASE_BASE().fuse, ...((b.phases && b.phases.fuse) || {}) },
       marrow: { ...PHASE_BASE().marrow, ...((b.phases && b.phases.marrow) || {}) },
     };
@@ -129,18 +146,18 @@
     // Compressive strength — peaks near Mg/PO4 = 6, boosted by fiber + HAp
     const comp = 52 + 7.2 * fiber + 4.0 * p.NanoHAp - 6.5 * ratioOff - 18 * (p.WB - 0.22);
     const flex = 7.5 + 1.4 * fiber + 1.8 * p.NanoHAp - 1.2 * ratioOff;
-    const E    = 13.5 + 1.10 * fiber + 0.45 * p.NanoHAp;
+    const E = 13.5 + 1.10 * fiber + 0.45 * p.NanoHAp;
     const density = 2.10 + 0.04 * fiber + 0.025 * p.NanoHAp - 0.6 * (p.WB - 0.22);
-    const therm   = 1.10 + 0.06 * fiber;
+    const therm = 1.10 + 0.06 * fiber;
     // Cure peak (°C): low borax + high ambient + tight Mg ratio → hot
     const cure = 68 + 8 * ratioOff - 5.2 * p.Borax + 0.4 * (env.tempC - 22);
     return {
-      comp:    clamp(round(comp, 1), 10, 140),
-      flex:    clamp(round(flex, 1), 1, 30),
-      E:       clamp(round(E, 1), 4, 35),
+      comp: clamp(round(comp, 1), 10, 140),
+      flex: clamp(round(flex, 1), 1, 30),
+      E: clamp(round(E, 1), 4, 35),
       density: clamp(round(density, 2), 1.3, 2.6),
-      therm:   round(therm, 2),
-      curePeak:clamp(round(cure, 1), 25, 130),
+      therm: round(therm, 2),
+      curePeak: clamp(round(cure, 1), 25, 130),
       flash,
       workMin: clamp(round(8 + 6.5 * p.Borax - 0.4 * (env.tempC - 22), 0), 1, 90),
     };
@@ -149,33 +166,33 @@
   function predictFuse(p, env) {
     const ratioOff = Math.abs(p.MgPO4 - 6.4);
     const bond = 4.2 + 2.8 * p.Seeds - 0.35 * p.Retarder - 0.6 * ratioOff
-                 + 0.012 * (p.Thixo - 50);
+      + 0.012 * (p.Thixo - 50);
     const tensile = 1.4 + 1.1 * p.Seeds - 0.18 * p.Retarder;
-    const work    = 14 + 7.5 * p.Borax + 5.0 * p.Retarder - 0.6 * (env.tempC - 22);
-    const cure    = 62 + 6 * ratioOff - 5 * p.Borax - 3.4 * p.Retarder
-                    + 0.4 * (env.tempC - 22);
-    const visc    = 1.2 + 0.05 * p.Thixo; // Pa·s
+    const work = 14 + 7.5 * p.Borax + 5.0 * p.Retarder - 0.6 * (env.tempC - 22);
+    const cure = 62 + 6 * ratioOff - 5 * p.Borax - 3.4 * p.Retarder
+      + 0.4 * (env.tempC - 22);
+    const visc = 1.2 + 0.05 * p.Thixo; // Pa·s
     return {
-      bond:    clamp(round(bond, 2), 0.2, 14),
+      bond: clamp(round(bond, 2), 0.2, 14),
       tensile: clamp(round(tensile, 2), 0.1, 6),
       workMin: clamp(round(work, 0), 2, 180),
-      curePeak:clamp(round(cure, 1), 25, 110),
+      curePeak: clamp(round(cure, 1), 25, 110),
       viscosity: round(visc, 1),
     };
   }
 
   function predictMarrow(p, env) {
     const porosity = clamp(0.18 + 0.10 * p.H2O2 + 0.0035 * p.Perlite, 0.05, 0.85);
-    const density  = clamp(1900 - 320 * p.H2O2 - 14 * p.Perlite, 200, 2200);
-    const R        = clamp(0.55 + 0.42 * p.H2O2 + 0.012 * p.Perlite, 0.5, 6.0); // m²·K/W per 100mm
-    const therm    = round(0.10 / R * 1.05 + 0.02, 3);                          // W/m·K (rough inverse)
-    const comp     = clamp(8 - 1.9 * p.H2O2 - 0.05 * p.Perlite, 0.2, 14);
+    const density = clamp(1900 - 320 * p.H2O2 - 14 * p.Perlite, 200, 2200);
+    const R = clamp(0.55 + 0.42 * p.H2O2 + 0.012 * p.Perlite, 0.5, 6.0); // m²·K/W per 100mm
+    const therm = round(0.10 / R * 1.05 + 0.02, 3);                          // W/m·K (rough inverse)
+    const comp = clamp(8 - 1.9 * p.H2O2 - 0.05 * p.Perlite, 0.2, 14);
     return {
       porosity: round(porosity, 3),
-      density:  round(density, 0),
-      R:        round(R, 2),
-      therm:    therm,
-      comp:     round(comp, 1),
+      density: round(density, 0),
+      R: round(R, 2),
+      therm: therm,
+      comp: round(comp, 1),
     };
   }
 
@@ -184,7 +201,7 @@
     const J = JOINTS[seam.type] || JOINTS.butt;
     const RaN = clamp(seam.roughness, 0, 100) / 100;          // 0..1
     const Lbn = clamp(seam.bondLength, 10, 100) / 40;         // baseline 40mm
-    const Cn  = clamp(seam.clearance, 1, 20) / 5;             // baseline 5mm
+    const Cn = clamp(seam.clearance, 1, 20) / 5;             // baseline 5mm
     const filletK = 1 - clamp(seam.fillet, 0, 5) / 7;         // larger fillet → lower stress
 
     // Thermal path ratio L_path / T_wall
@@ -235,51 +252,53 @@
   }
 
   function predictAll(batch) {
-    const flint = predictFlint(batch.phases.flint, batch.env);
-    const fuse  = predictFuse(batch.phases.fuse, batch.env);
+    const flint_s = predictFlint(batch.phases.flint_s, batch.env);
+    const flint_e = predictFlint(batch.phases.flint_e, batch.env);
+    const fuse = predictFuse(batch.phases.fuse, batch.env);
     const marrow = predictMarrow(batch.phases.marrow, batch.env);
     const seam = predictSeam(batch.seam, marrow, fuse);
     const cost = {
-      flint:  costPhase(batch.phases.flint),
-      fuse:   costPhase(batch.phases.fuse),
+      flint_s: costPhase(batch.phases.flint_s),
+      flint_e: costPhase(batch.phases.flint_e),
+      fuse: costPhase(batch.phases.fuse),
       marrow: costPhase(batch.phases.marrow),
     };
-    cost.total = cost.flint + cost.fuse + cost.marrow;
-    return { flint, fuse, marrow, seam, cost };
+    cost.total = cost.flint_s + cost.flint_e + cost.fuse + cost.marrow;
+    return { flint_s, flint_e, fuse, marrow, seam, cost };
   }
 
   function scoreBatch(batch, pred) {
     const o = batch.objectives || OBJECTIVE_BASE();
     const penalties = [
-      clamp(pred.flint.comp / o.compMin, 0, 1.25),
-      clamp(pred.flint.flex / o.flexMin, 0, 1.25),
+      clamp(pred.flint_s.comp / o.compMin, 0, 1.25),
+      clamp(pred.flint_s.flex / o.flexMin, 0, 1.25),
       clamp(pred.fuse.bond / o.bondMin, 0, 1.25),
       clamp(pred.marrow.r_value ? pred.marrow.r_value / o.rMin : pred.marrow.R / o.rMin, 0, 1.25),
       clamp(pred.fuse.work_min ? pred.fuse.work_min / o.workMin : pred.fuse.workMin / o.workMin, 0, 1.25),
-      clamp(o.cureMax / Math.max(pred.flint.cure_peak || pred.flint.curePeak, 1), 0, 1.25),
+      clamp(o.cureMax / Math.max(pred.flint_s.cure_peak || pred.flint_s.curePeak, 1), 0, 1.25),
       clamp(o.costMax / Math.max(pred.cost.total, 1), 0, 1.25),
-      clamp(o.densityMax / Math.max(pred.flint.density, 0.1), 0, 1.25),
+      clamp(o.densityMax / Math.max(pred.flint_s.density, 0.1), 0, 1.25),
     ];
     const mean = penalties.reduce((a, b) => a + b, 0) / penalties.length;
-    const safety = (pred.flint.flash ? -0.18 : 0) + ((pred.seam.wickHigh || pred.seam.thermalBridge) ? -0.06 : 0);
+    const safety = (pred.flint_s.flash ? -0.18 : 0) + ((pred.seam.wickHigh || pred.seam.thermalBridge) ? -0.06 : 0);
     return clamp(round(mean + safety, 3), 0, 1.15);
   }
 
   function summarizePrediction(batch, pred) {
     return {
       score: scoreBatch(batch, pred),
-      comp: pred.flint.comp,
-      flex: pred.flint.flex,
+      comp: pred.flint_s.comp,
+      flex: pred.flint_s.flex,
       bond: pred.fuse.bond,
       rValue: pred.marrow.R,
       workMin: pred.fuse.workMin,
-      curePeak: pred.flint.curePeak,
+      curePeak: pred.flint_s.curePeak,
       cost: pred.cost.total,
     };
   }
 
   function featureVector(batch) {
-    const f = batch.phases.flint;
+    const f = batch.phases.flint_s;
     const u = batch.phases.fuse;
     const m = batch.phases.marrow;
     return {
@@ -381,13 +400,13 @@
   // ── Performance radar — 6 axes 0..1 ─────────────────────────────
   function radarMetrics(pred) {
     return {
-      strength:    clamp(pred.flint.comp / 100, 0, 1),
-      stiffness:   clamp(pred.flint.E / 25, 0, 1),
-      toughness:   clamp(pred.flint.flex / 20, 0, 1),
-      insulation:  clamp(pred.marrow.R / 5, 0, 1),
-      bond:        clamp(pred.fuse.bond / 10, 0, 1),
+      strength: clamp(pred.flint_s.comp / 100, 0, 1),
+      stiffness: clamp(pred.flint_s.E / 25, 0, 1),
+      toughness: clamp(pred.flint_s.flex / 20, 0, 1),
+      insulation: clamp(pred.marrow.R / 5, 0, 1),
+      bond: clamp(pred.fuse.bond / 10, 0, 1),
       workability: clamp(pred.fuse.workMin / 80, 0, 1),
-      cost:        clamp(1 - pred.cost.total / 6000, 0, 1),
+      cost: clamp(1 - pred.cost.total / 6000, 0, 1),
     };
   }
 
@@ -409,46 +428,10 @@
       base.name = 'Fresh Pour';
       base.status = 'research';
       base.notes = 'Just-mixed sandbox iteration. Bench data pending.';
-    } else if (kind === 'midpour') {
-      base.name = 'Mid-Pour (B-038)';
-      base.status = 'bench';
-      base.phases.flint.MgPO4 = 6.40;
-      base.phases.flint.BasaltFiber = 4.2;
-      base.phases.fuse.Thixo = 71;
-      base.benchLogs = [{
-        ts: now - 3600 * 1000 * 6, kind: 'cure',
-        note: 'Exotherm peaked at 64.2°C, 14 min from mix. Window held to 38 min.',
-      }];
-    } else if (kind === 'cured') {
-      base.name = 'Cured / 28d (B-027)';
-      base.status = 'locked';
-      base.phases.flint.MgPO4 = 6.20;
-      base.phases.flint.BasaltFiber = 4.8;
-      base.phases.flint.NanoHAp = 1.2;
-      base.phases.fuse.Seeds = 1.1;
-      base.phases.marrow.Perlite = 42;
-      base.benchLogs = [
-        { ts: now - 86400000 * 28, kind: 'cast', note: 'Cast Flint cube C-104. Mold L-3.' },
-        { ts: now - 86400000 * 27, kind: 'cure', note: 'De-molded at 24h. No surface micro-cracks.' },
-        { ts: now - 86400000 * 4,  kind: 'break', mpa: 72.4, mode: 'brittle',
-          note: 'Compressive break at 72.4 MPa. Failure plane at 38° from vertical.' },
-        { ts: now - 86400000 * 2,  kind: 'break', mpa: 8.6, mode: 'ductile',
-          note: 'Flexural break at 8.6 MPa. Fiber pull-out evident on fracture surface.' },
-      ];
-    } else if (kind === 'failed') {
-      base.name = 'Failed (B-022)';
-      base.status = 'failed';
-      base.phases.flint.MgPO4 = 8.2;       // hot — flash-set risk
-      base.phases.flint.Borax = 1.4;
-      base.phases.marrow.H2O2 = 3.4;       // very porous
-      base.phases.fuse.Retarder = 0.4;     // too little
-      base.seam.type = 'shark';
-      base.benchLogs = [
-        { ts: now - 86400000 * 8, kind: 'cast', note: 'Visible flash-set at 9 min during pour.' },
-        { ts: now - 86400000 * 7, kind: 'cure', note: 'Delamination at Fuse/Marrow interface.' },
-        { ts: now - 86400000 * 1, kind: 'break', mpa: 18.4, mode: 'delaminated',
-          note: 'De-bonded at interface before reaching predicted load.' },
-      ];
+    } else if (kind === 'fresh') {
+      base.name = 'Fresh Pour';
+      base.status = 'research';
+      base.notes = 'Just-mixed sandbox iteration. Bench data pending.';
     }
     return base;
   }
@@ -456,47 +439,24 @@
   // ── Seed corpus ─────────────────────────────────────────────────
   function seedBatches() {
     const out = [];
-    const cured = makePreset('cured');
-    cured.id = 'B-027'; cured.name = 'Coastal Panel 1.2 (B-027)';
-    out.push(cured);
-
-    const mid = makePreset('midpour');
-    mid.id = 'B-038'; mid.name = 'Wind Bracing Trial (B-038)';
-    out.push(mid);
-
-    const r1 = makePreset('fresh');
-    r1.id = 'B-041'; r1.name = 'Hi-R Marrow (B-041)';
-    r1.phases.marrow.H2O2 = 2.4; r1.phases.marrow.Perlite = 50;
-    out.push(r1);
-
-    const fail = makePreset('failed');
-    fail.id = 'B-022'; fail.name = 'Hot-Day Pour (B-022)';
-    out.push(fail);
-
-    const r2 = makePreset('fresh');
-    r2.id = 'B-046'; r2.name = 'Low-Cost Façade (B-046)';
-    r2.phases.flint.BasaltFiber = 1.4; r2.phases.flint.NanoHAp = 0;
-    out.push(r2);
-
-    const r3 = makePreset('fresh');
-    r3.id = 'B-049'; r3.name = 'IR Resistant (B-049)';
-    r3.phases.flint.NanoHAp = 2.4; r3.phases.flint.BasaltFiber = 5.6;
-    r3.status = 'research';
-    out.push(r3);
-
+    const b = makePreset('fresh');
+    b.id = 'B-001';
+    b.name = 'Formulation 001';
+    b.notes = 'Clean base pour mapped to 4-phase system.';
+    out.push(b);
     return out;
   }
 
   // ── Inventory (raw materials, with stock + flag) ────────────────
   const INVENTORY = [
-    { sku: 'MGO-DBM-92',  name: 'MgO (dead-burned, 92%)',   stock: 42.8,  unit: 'kg', lot: 'L-2811', flag: null },
-    { sku: 'KH2PO4-T',    name: 'KH₂PO₄ (technical)',        stock: 28.6,  unit: 'kg', lot: 'L-3401', flag: null },
-    { sku: 'BX-DH',       name: 'Borax (decahydrate)',      stock: 14.2,  unit: 'kg', lot: 'L-1162', flag: 'low' },
-    { sku: 'BF-12K',      name: 'Basalt fiber (12mm)',      stock:  6.4,  unit: 'kg', lot: 'L-9921', flag: null },
-    { sku: 'NHA-200',     name: 'Nano-HAp (<200 nm)',       stock:  0.84, unit: 'kg', lot: 'L-7740', flag: 'low' },
-    { sku: 'PERL-F',      name: 'Perlite (expanded, fine)', stock: 88.0,  unit: 'L',  lot: 'L-4408', flag: null },
-    { sku: 'H2O2-35',     name: 'H₂O₂ (35%)',                stock:  5.2,  unit: 'L',  lot: 'L-6612', flag: null },
-    { sku: 'SEED-MKP',    name: 'Pre-reacted MKP seeds',    stock:  2.1,  unit: 'kg', lot: 'L-8001', flag: null },
+    { sku: 'MGO-DBM-92', name: 'MgO (dead-burned, 92%)', stock: 42.8, unit: 'kg', lot: 'L-2811', flag: null },
+    { sku: 'KH2PO4-T', name: 'KH₂PO₄ (technical)', stock: 28.6, unit: 'kg', lot: 'L-3401', flag: null },
+    { sku: 'BX-DH', name: 'Borax (decahydrate)', stock: 14.2, unit: 'kg', lot: 'L-1162', flag: 'low' },
+    { sku: 'BF-12K', name: 'Basalt fiber (12mm)', stock: 6.4, unit: 'kg', lot: 'L-9921', flag: null },
+    { sku: 'NHA-200', name: 'Nano-HAp (<200 nm)', stock: 0.84, unit: 'kg', lot: 'L-7740', flag: 'low' },
+    { sku: 'PERL-F', name: 'Perlite (expanded, fine)', stock: 88.0, unit: 'L', lot: 'L-4408', flag: null },
+    { sku: 'H2O2-35', name: 'H₂O₂ (35%)', stock: 5.2, unit: 'L', lot: 'L-6612', flag: null },
+    { sku: 'SEED-MKP', name: 'Pre-reacted MKP seeds', stock: 2.1, unit: 'kg', lot: 'L-8001', flag: null },
   ];
 
   // ── Persistence ─────────────────────────────────────────────────
@@ -513,7 +473,7 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* noop */ }
   }
   function reset() {
-    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { }
   }
 
   // ── Tiny pub/sub ────────────────────────────────────────────────
@@ -533,9 +493,10 @@
     return next;
   }
 
+  localStorage.removeItem('cairn'); // Clear old schema 
   let state = normalizeState(load() || {
     batches: seedBatches(),
-    activeId: 'B-027',
+    activeId: 'B-001',
     activeModule: 'dashboard',
     inventory: INVENTORY,
     objectives: OBJECTIVE_BASE(),

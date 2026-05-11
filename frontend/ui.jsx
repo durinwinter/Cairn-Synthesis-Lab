@@ -31,14 +31,14 @@ function Slider({
             const b = ((z.to - min) / (max - min)) * 100;
             return (
               <div key={i} className={`slider__zone slider__zone--${z.kind}`}
-                   style={{ left: `${a}%`, width: `${b - a}%` }} />
+                style={{ left: `${a}%`, width: `${b - a}%` }} />
             );
           })}
           <div className="slider__fill" style={{ width: `${pct}%` }} />
         </div>
         <div className="slider__thumb" style={{ left: `${pct}%` }} />
         <input type="range" min={min} max={max} step={step} value={value}
-               onChange={(e) => onChange(Number(e.target.value))} />
+          onChange={(e) => onChange(Number(e.target.value))} />
       </div>
       {ticks && (
         <div className="slider__ticks">
@@ -100,14 +100,14 @@ function Card({ title, dark, right, children, style, bodyStyle }) {
 // ── Pour Pipeline header ──────────────────────────────────────
 function PourPipeline({ batch, pred }) {
   const steps = [
-    { k: 'CHARGE',  v: 'MgO + KH₂PO₄', sub: `${batch.phases.flint.MgPO4.toFixed(2)} Mg/PO₄`, active: false },
-    { k: 'MIX',     v: 'BORAX HOLD',   sub: `+ ${batch.phases.flint.Borax.toFixed(1)}% borax`, active: false },
-    { k: 'POUR',    v: 'WORKING',      sub: `${pred.flint.workMin} min window`, active: true },
-    { k: 'CURE',    v: `Δ ${pred.flint.curePeak.toFixed(0)}°C`, sub: `peak T+${(8 + 6 * batch.phases.flint.Borax).toFixed(0)} min`, active: false },
-    { k: 'SET',     v: `${pred.flint.comp.toFixed(0)} MPa`, sub: '28-day target', active: false },
+    { k: 'CHARGE', v: 'MgO + KH₂PO₄', sub: `${batch.phases.flint_s.MgPO4.toFixed(2)} Mg/PO₄`, active: false },
+    { k: 'MIX', v: 'BORAX HOLD', sub: `+ ${batch.phases.flint_s.Borax.toFixed(1)}% borax`, active: false },
+    { k: 'POUR', v: 'WORKING', sub: `${pred.flint_s.workMin} min window`, active: true },
+    { k: 'CURE', v: `Δ ${pred.flint_s.curePeak.toFixed(0)}°C`, sub: `peak T+${(8 + 6 * batch.phases.flint_s.Borax).toFixed(0)} min`, active: false },
+    { k: 'SET', v: `${pred.flint_s.comp.toFixed(0)} MPa`, sub: '28-day target', active: false },
   ];
   const progress = Math.max(0, Math.min(100, Math.round(
-    (pred.flint.workMin / 60) * 100
+    (pred.flint_s.workMin / 60) * 100
   )));
   return (
     <div className="pipeline">
@@ -134,7 +134,7 @@ function BatchListItem({ batch, active, onClick }) {
   const days = Math.floor((Date.now() - batch.createdAt) / 86400000);
   return (
     <div className="batch" data-active={active ? '1' : '0'}
-         data-status={statusKey} onClick={onClick}>
+      data-status={statusKey} onClick={onClick}>
       <div className="batch__stripe" />
       <div className="batch__body">
         <div className="batch__id">{batch.id} · {STATUS_LABEL[statusKey]}</div>
@@ -149,28 +149,28 @@ function BatchListItem({ batch, active, onClick }) {
 }
 
 const STATUS_LABEL = {
-  locked:   'LOCKED',
-  bench:    'BENCH',
+  locked: 'LOCKED',
+  bench: 'BENCH',
   research: 'RESEARCH',
-  failed:   'FAILED',
+  failed: 'FAILED',
 };
 
 // ── Top nav ───────────────────────────────────────────────────
 function TopNav({ active, onChange }) {
   const tabs = [
-    { id: 'dashboard',   ix: '00', label: 'DASHBOARD' },
+    { id: 'dashboard', ix: '00', label: 'DASHBOARD' },
     { id: 'formulation', ix: '01', label: 'FORMULATION' },
-    { id: 'lab',         ix: '02', label: 'DIGITAL LAB' },
-    { id: 'kinetic',     ix: '03', label: 'KINETIC' },
-    { id: 'interface',   ix: '04', label: 'INTERFACE' },
-    { id: 'seam',        ix: '05', label: 'SEAM' },
+    { id: 'lab', ix: '02', label: 'DIGITAL LAB' },
+    { id: 'kinetic', ix: '03', label: 'KINETIC' },
+    { id: 'interface', ix: '04', label: 'INTERFACE' },
+    { id: 'seam', ix: '05', label: 'SEAM' },
   ];
   return (
     <div className="topbar__nav">
       {tabs.map((t) => (
         <button key={t.id} className="topbar__navbtn"
-                data-active={active === t.id ? '1' : '0'}
-                onClick={() => onChange(t.id)}>
+          data-active={active === t.id ? '1' : '0'}
+          onClick={() => onChange(t.id)}>
           <span className="ix">{t.ix}</span>{t.label}
         </button>
       ))}
@@ -236,10 +236,10 @@ function BenchFeed({ logs }) {
     );
   }
   const KIND_COLOR = {
-    cast:  'var(--marrow-edge)',
-    cure:  'var(--retarder)',
+    cast: 'var(--marrow-edge)',
+    cure: 'var(--retarder)',
     break: 'var(--alert)',
-    note:  'var(--ink-3)',
+    note: 'var(--ink-3)',
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -309,14 +309,14 @@ function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onPreset }) {
         <div className="rail__hd">BATCH STATE</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: '8px 12px 12px' }}>
           {[
-            { k: 'fresh',   label: 'FRESH' },
+            { k: 'fresh', label: 'FRESH' },
             { k: 'midpour', label: 'MID-POUR' },
-            { k: 'cured',   label: 'CURED' },
-            { k: 'failed',  label: 'FAILED' },
+            { k: 'cured', label: 'CURED' },
+            { k: 'failed', label: 'FAILED' },
           ].map((p) => (
             <button key={p.k} className="btn btn--ghost"
-                    onClick={() => onPreset(p.k)}
-                    style={{ fontSize: 10, padding: '6px 4px' }}>
+              onClick={() => onPreset(p.k)}
+              style={{ fontSize: 10, padding: '6px 4px' }}>
               {p.label}
             </button>
           ))}

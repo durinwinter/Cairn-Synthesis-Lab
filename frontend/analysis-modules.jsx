@@ -8,21 +8,22 @@ function KineticModule({ batch, pred }) {
   return (
     <div className="modulepage">
       <Card title="Curing Timeline"
-            dark
-            right={<span className="mono dim-d" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>120 MIN · EXOTHERM MODEL</span>}>
+        dark
+        right={<span className="mono dim-d" style={{ fontSize: 9.5, letterSpacing: '0.16em' }}>120 MIN · EXOTHERM MODEL</span>}>
         <ExothermChart curves={curves} env={batch.env} />
       </Card>
-      <div className="row3">
-        <Cell k="Flint work" v={pred.flint.workMin} unit="min" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
+        <Cell k="Flint work" v={pred.flint_s.workMin} unit="min" />
         <Cell k="Fuse work" v={pred.fuse.workMin} unit="min" />
-        <Cell k="Peak risk" v={pred.flint.curePeak > 90 ? 'HIGH' : 'OK'} />
+        <Cell k="Peak risk" v={pred.flint_s.curePeak > 90 ? 'HIGH' : 'OK'} />
+        <Cell k="Wick risk" v={pred.seam.wickHigh ? 'FAIL' : 'OK'} />
       </div>
       <Card title="Cure Controls">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
           <Slider label="Ambient temperature" value={batch.env.tempC} min={5} max={40} step={1} unit=" °C"
-                  onChange={(v) => CSL.setEnvVal('tempC', v)} />
+            onChange={(v) => CSL.setEnvVal('tempC', v)} />
           <Slider label="Relative humidity" value={batch.env.humidity} min={20} max={95} step={1} unit=" %"
-                  onChange={(v) => CSL.setEnvVal('humidity', v)} />
+            onChange={(v) => CSL.setEnvVal('humidity', v)} />
         </div>
       </Card>
     </div>
@@ -46,11 +47,11 @@ function InterfaceModule({ batch, pred }) {
         <Card title="Interface Levers">
           <div style={{ display: 'grid', gap: 16 }}>
             <Slider label="Surface roughness" value={batch.seam.roughness} min={0} max={100} step={1}
-                    onChange={(v) => CSL.setSeamVal('roughness', v)} />
+              onChange={(v) => CSL.setSeamVal('roughness', v)} />
             <Slider label="Fuse bond length" value={batch.seam.bondLength} min={10} max={100} step={1} unit=" mm"
-                    onChange={(v) => CSL.setSeamVal('bondLength', v)} />
+              onChange={(v) => CSL.setSeamVal('bondLength', v)} />
             <Slider label="Fillet radius" value={batch.seam.fillet} min={0} max={5} step={0.1} unit=" mm"
-                    onChange={(v) => CSL.setSeamVal('fillet', v)} />
+              onChange={(v) => CSL.setSeamVal('fillet', v)} />
           </div>
         </Card>
       </div>
@@ -76,19 +77,19 @@ function SeamModule({ batch, pred }) {
           <div className="seam-buttons">
             {profiles.map((p) => (
               <button key={p.id}
-                      className={`btn ${batch.seam.type === p.id ? 'btn--fuse' : 'btn--ghost'}`}
-                      onClick={() => CSL.setSeamVal('type', p.id)}>
+                className={`btn ${batch.seam.type === p.id ? 'btn--fuse' : 'btn--ghost'}`}
+                onClick={() => CSL.setSeamVal('type', p.id)}>
                 {p.label}
               </button>
             ))}
           </div>
           <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
             <Slider label="Clearance" value={batch.seam.clearance} min={1} max={20} step={0.5} unit=" mm"
-                    onChange={(v) => CSL.setSeamVal('clearance', v)} />
+              onChange={(v) => CSL.setSeamVal('clearance', v)} />
             <Slider label="Bond length" value={batch.seam.bondLength} min={10} max={100} step={1} unit=" mm"
-                    onChange={(v) => CSL.setSeamVal('bondLength', v)} />
+              onChange={(v) => CSL.setSeamVal('bondLength', v)} />
             <Slider label="Roughness" value={batch.seam.roughness} min={0} max={100} step={1}
-                    onChange={(v) => CSL.setSeamVal('roughness', v)} />
+              onChange={(v) => CSL.setSeamVal('roughness', v)} />
           </div>
         </Card>
       </div>
@@ -113,8 +114,8 @@ function ExothermChart({ curves, env }) {
       {[30, 60, 90, 120].map((t) => <line key={t} x1={x(t)} y1={pad} x2={x(t)} y2={h - pad} stroke="rgba(232,225,208,0.08)" />)}
       {curves.map((c) => (
         <path key={c.phase}
-              d={c.points.map((p, i) => `${i ? 'L' : 'M'} ${x(p.t).toFixed(1)} ${y(p.T).toFixed(1)}`).join(' ')}
-              fill="none" stroke={color[c.phase]} strokeWidth="2" />
+          d={c.points.map((p, i) => `${i ? 'L' : 'M'} ${x(p.t).toFixed(1)} ${y(p.T).toFixed(1)}`).join(' ')}
+          fill="none" stroke={color[c.phase]} strokeWidth="2" />
       ))}
       {curves.map((c, i) => (
         <text key={c.phase} x={pad + i * 112} y={18} fill={color[c.phase]} fontSize="11" fontFamily="monospace">
@@ -131,10 +132,10 @@ function InterfaceMap({ vitals, wick }) {
       <rect x="40" y="46" width="540" height="62" fill="var(--flint)" opacity="0.9" />
       <rect x="40" y="152" width="540" height="62" fill="var(--marrow-warm)" opacity="0.85" />
       <path d="M40 108 C160 126 260 126 380 108 S520 92 580 108 L580 152 C470 136 360 136 250 152 S100 170 40 152 Z"
-            fill="var(--fuse)" opacity="0.92" />
+        fill="var(--fuse)" opacity="0.92" />
       {vitals.risers.map((r, i) => (
         <circle key={i} cx={40 + r.x * 5.4} cy={84 + r.y * 2.2} r={7 + r.intensity * 10}
-                fill="none" stroke="var(--alert)" strokeOpacity={0.25 + r.intensity * 0.5} />
+          fill="none" stroke="var(--alert)" strokeOpacity={0.25 + r.intensity * 0.5} />
       ))}
       <text x="44" y="32" fill="var(--bone-3)" fontSize="11" fontFamily="monospace">
         WICKING {wick.score.toFixed(2)} · SURFACE AREA {vitals.surfaceArea.toFixed(0)}
