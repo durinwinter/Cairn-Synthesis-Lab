@@ -325,7 +325,8 @@
 
   function mutateBatch(src, index) {
     const b = ensureBatchShape(clone(src));
-    const f = b.phases.flint;
+    const f = b.phases.flint_s;
+    const fe = b.phases.flint_e;
     const u = b.phases.fuse;
     const m = b.phases.marrow;
     const variants = [
@@ -334,6 +335,7 @@
       () => { m.H2O2 += 0.35; m.Perlite += 6; f.BasaltFiber += 0.2; },
       () => { f.MgPO4 -= 0.25; f.Borax += 0.6; u.Borax += 0.4; },
       () => { f.BasaltFiber -= 0.9; f.NanoHAp -= 0.3; m.Perlite += 4; },
+      () => { fe.NanoHAp += 0.3; fe.WB -= 0.005; fe.BasaltFiber += 0.2; },
       () => { b.seam.type = ['dovetail', 'shiplap', 'shark'][index % 3]; b.seam.bondLength += 10; b.seam.roughness += 12; },
     ];
     variants[index % variants.length]();
@@ -342,6 +344,9 @@
     f.BasaltFiber = clamp(round(f.BasaltFiber, 1), 0, 6);
     f.NanoHAp = clamp(round(f.NanoHAp, 2), 0, 3);
     f.WB = clamp(round(f.WB, 3), 0.16, 0.32);
+    fe.MgPO4 = clamp(round(fe.MgPO4, 2), 4.2, 7.8);
+    fe.NanoHAp = clamp(round(fe.NanoHAp, 2), 0, 3);
+    fe.WB = clamp(round(fe.WB, 3), 0.16, 0.28);
     u.Borax = clamp(round(u.Borax, 1), 0, 8);
     u.Retarder = clamp(round(u.Retarder, 2), 0, 3);
     u.Seeds = clamp(round(u.Seeds, 2), 0, 2);

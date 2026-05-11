@@ -247,6 +247,7 @@ function App() {
 
   const [benchOpen, setBenchOpen] = appUseState(false);
   const [vaultOpen, setVaultOpen] = appUseState(false);
+  const [helpOpen,  setHelpOpen]  = appUseState(false);
   const [initialPhase, setInitialPhase] = appUseState('flint_s');
 
   const goModule = (id, phase) => {
@@ -260,7 +261,8 @@ function App() {
         activeModule={state.activeModule}
         onModule={(m) => CSL.setActiveModule(m)}
         onBench={() => setBenchOpen(true)}
-        onClone={() => CSL.cloneActive()} />
+        onClone={() => CSL.cloneActive()}
+        onHelp={() => setHelpOpen(true)} />
 
       <div className="main3">
         <Sidebar state={state} batchView={batchView} onPick={(id) => CSL.setActiveId(id)} />
@@ -303,6 +305,9 @@ function App() {
         <IpVaultOverlay batch={batchView} pred={pred}
           onClose={() => setVaultOpen(false)} />
       )}
+      {helpOpen && window.HelpOverlay && (
+        <window.HelpOverlay onClose={() => setHelpOpen(false)} />
+      )}
     </div>
   );
 }
@@ -310,7 +315,7 @@ function App() {
 /* ──────────────────────────────────────────────────────────────
    Top Bar
    ────────────────────────────────────────────────────────────── */
-function TopBar({ batch, pred, activeModule, onModule, onBench, onClone }) {
+function TopBar({ batch, pred, activeModule, onModule, onBench, onClone, onHelp }) {
   return (
     <header className="topbar">
       <div className="topbar__brand">
@@ -332,8 +337,13 @@ function TopBar({ batch, pred, activeModule, onModule, onBench, onClone }) {
           <span className="dim">AMB</span> {batch.env.tempC}°C
           <span className="dim" style={{ marginLeft: 10 }}>RH</span> {batch.env.humidity}%
         </div>
+        <a href="wizard.html" target="_blank"
+           className="btn btn--ghost"
+           style={{ textDecoration: 'none' }}>⬡ BATCH WIZARD</a>
         <button className="btn btn--ghost" onClick={onBench}>+ BENCH</button>
         <button className="btn btn--fuse" onClick={onClone}>+ CLONE</button>
+        <button className="btn btn--ghost" onClick={onHelp}
+                style={{ fontWeight: 700, minWidth: 32 }}>?</button>
       </div>
     </header>
   );

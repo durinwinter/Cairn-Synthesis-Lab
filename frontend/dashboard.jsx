@@ -413,7 +413,12 @@ function DashboardRail({ batch, pred, onClone, onBench, onIpVault, onPreset }) {
       {/* Quick actions */}
       <Card title="Actions">
         <div style={{ display: 'grid', gap: 6 }}>
-          <button className="btn btn--fuse" onClick={onClone}>+ CLONE &amp; MUTATE</button>
+          <a href="wizard.html" target="_blank"
+             className="btn btn--fuse"
+             style={{ textDecoration: 'none', justifyContent: 'center' }}>
+            ⬡ BATCH WIZARD
+          </a>
+          <button className="btn btn--ghost" onClick={onClone}>+ CLONE &amp; MUTATE</button>
           <button className="btn" onClick={onBench}>BENCH ENTRY</button>
           <button className="btn btn--ghost" onClick={onIpVault}>PRINT LAB SHEET</button>
           <button className="btn btn--ghost" onClick={onIpVault}>EXPORT IP VAULT</button>

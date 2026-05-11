@@ -5,23 +5,24 @@
 
 const { useState, useEffect, useRef, useCallback } = React;
 
-// ── Fuse protein biopolymer config ───────────────────────────────
-// Cairn Fuse uses a hydrolysed casein or keratin protein biopolymer
-// replacing 20% of mix water. The protein matrix grows struvite-K
-// crystals through it, creating an organic-mineral composite that
-// penetrates into both adjacent panels.
-// Characteristic colour: pink/salmon at working concentration.
-const PROTEIN_BIO = {
-  name:          'Hydrolysed Casein / Keratin Biopolymer',
-  shortName:     'Protein-Bio',
+// ── Cairn Fuse: Biocompatible Solution config ────────────────────
+// Per the Cairn Material System Mapping:
+//   Primary Kinetic Driver: Organic Crosslinker
+//   Special Sauce: Biocompatible solution replacing water
+//
+// The biocompatible solution replaces 20% of mix water. It forms a
+// protein-mineral composite as struvite-K crystals grow through it,
+// penetrating the pore networks of both adjacent Flint and Marrow panels.
+// Visual QC at working concentration: pink/salmon colour.
+const BIO_SOLUTION = {
+  name:          'Cairn Biocompatible Solution',
+  shortName:     'Bio-Sol',
   replaceRatio:  0.20,
   workMin:       15,
-  // No compatibility warnings — casein/keratin are pH-compatible
-  // with MKPC phosphate chemistry (6–8 working range)
-  compatNote:    null,
+  compatNote:    null,  // pH 6–8 working range — compatible with MKPC chemistry
   warning:       null,
-  colourNote:    'Expected colour: pink/salmon. This is the visual indicator of correct protein concentration. Pale or white = under-dosed.',
-  voice:         'Protein biopolymer solution loaded. The struvite-K crystals will grow through the protein matrix and penetrate the adjacent panels — that crystal ingress IS the bond. You are growing a seam, not applying glue.',
+  colourNote:    'Expected colour: pink/salmon at correct concentration. Pale or colourless = under-dosed. Do not proceed.',
+  voice:         'Biocompatible solution loaded. Struvite-K crystals will grow through the organic matrix and penetrate both adjacent panels — that crystal ingress is the bond. You are growing a seam, not applying an adhesive.',
 };
 
 // ── Layer definitions ─────────────────────────────────────────────
@@ -290,7 +291,7 @@ const LAYERS = [
     tagColor:    'var(--fuse-hot)',
     accentColor: 'var(--fuse)',
     dataColor:   'fuse',
-    driver:      `Protein biopolymer (${PROTEIN_BIO.shortName}) · Crystal penetration bonding`,
+    driver:      `Protein biopolymer (${BIO_SOLUTION.shortName}) · Crystal penetration bonding`,
     sauce:       'Struvite-K crystals grow through the protein matrix and INTO both adjacent panels. The seam becomes the strongest part of the assembly.',
     steps: [
       {
@@ -322,13 +323,13 @@ const LAYERS = [
       {
         id:    'protein',
         title: 'Prepare protein biopolymer solution',
-        detail: `Replace ${Math.round(PROTEIN_BIO.replaceRatio * 100)}% of mix water with ${PROTEIN_BIO.name}. Dissolve fully in the water fraction before combining with phosphate. The expected colour is pink/salmon at correct concentration — pale or colourless means under-dosed. This is your visual QC check.`,
+        detail: `Replace ${Math.round(BIO_SOLUTION.replaceRatio * 100)}% of mix water with ${BIO_SOLUTION.name}. Dissolve fully in the water fraction before combining with phosphate. The expected colour is pink/salmon at correct concentration — pale or colourless means under-dosed. This is your visual QC check.`,
         quantities: [
-          { label: PROTEIN_BIO.name,        value: `${Math.round(PROTEIN_BIO.replaceRatio * 100)}% of mix water`, unit: '' },
-          { label: 'Remaining plain water', value: `${Math.round((1 - PROTEIN_BIO.replaceRatio) * 100)}% of mix water`, unit: '' },
+          { label: BIO_SOLUTION.name,        value: `${Math.round(BIO_SOLUTION.replaceRatio * 100)}% of mix water`, unit: '' },
+          { label: 'Remaining plain water', value: `${Math.round((1 - BIO_SOLUTION.replaceRatio) * 100)}% of mix water`, unit: '' },
           { label: 'Target colour',         value: 'Pink / salmon',  unit: '← visual QC' },
         ],
-        voice: PROTEIN_BIO.voice,
+        voice: BIO_SOLUTION.voice,
       },
       {
         id:    'mix',
@@ -339,11 +340,11 @@ const LAYERS = [
           { label: 'Borax',           value: '6.5–7.0 wt% MgO',       unit: '' },
           { label: 'Nano-HAp seeds',  value: '0.5–1.5 wt%',           unit: 'nucleation trigger' },
           { label: 'Fumed silica',    value: '0.5–1.0 wt%',           unit: 'thixotropy' },
-          { label: 'Working window',  value: `${PROTEIN_BIO.workMin} min`, unit: '' },
+          { label: 'Working window',  value: `${BIO_SOLUTION.workMin} min`, unit: '' },
         ],
         timer: { seconds: 90, label: 'Fuse mix' },
-        warn:  `Working window: ${PROTEIN_BIO.workMin} min from mix. Load the cartridge gun immediately after mixing.`,
-        voice: `Fuse mixed. Load the cartridge. Working time is ${PROTEIN_BIO.workMin} minutes. The seam is either the strongest or weakest part of the structure — this pour decides which.`,
+        warn:  `Working window: ${BIO_SOLUTION.workMin} min from mix. Load the cartridge gun immediately after mixing.`,
+        voice: `Fuse mixed. Load the cartridge. Working time is ${BIO_SOLUTION.workMin} minutes. The seam is either the strongest or weakest part of the structure — this pour decides which.`,
       },
       {
         id:    'loadcartridge',
@@ -368,7 +369,7 @@ const LAYERS = [
           'Proud bead trowelled flush with panel face',
           'Damp cloth cover applied immediately',
         ],
-        timer: { seconds: PROTEIN_BIO.workMin * 60, label: 'Working window remaining' },
+        timer: { seconds: BIO_SOLUTION.workMin * 60, label: 'Working window remaining' },
         voice: 'Seam filling in progress. Push the nozzle forward steadily — the bead fills behind it. Crystal penetration cannot happen across a gap. Full contact with both Flint and Marrow is mandatory.',
       },
       {
@@ -381,7 +382,7 @@ const LAYERS = [
           'Assembly not moved for 24 h',
           'Pull-off test scheduled at 48 h',
         ],
-        voice: `Fuse curing. Come back in 48 hours with a pull-off tester. If the seam fails cohesively above 1.5 MPa, the ${PROTEIN_BIO.shortName} path is confirmed for this joint geometry. Adhesive failure at the Marrow face means the primer dwell was too short.`,
+        voice: `Fuse curing. Come back in 48 hours with a pull-off tester. If the seam fails cohesively above 1.5 MPa, the ${BIO_SOLUTION.shortName} path is confirmed for this joint geometry. Adhesive failure at the Marrow face means the primer dwell was too short.`,
       },
     ],
   },
@@ -814,7 +815,7 @@ function Wizard() {
           <div className="wiz__mark" />
           <div>
             <div className="wiz__title">Cairn Synthesis Lab · Batch Wizard</div>
-            <div className="wiz__sub">Single-Test Protocol · {PROTEIN_BIO.shortName} Fuse path</div>
+            <div className="wiz__sub">Single-Test Protocol · Fuse: {BIO_SOLUTION.name}</div>
           </div>
         </div>
         {phase !== 'pick' && phase !== 'done' && (
